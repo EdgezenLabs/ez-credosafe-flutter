@@ -16,8 +16,11 @@ class _LoanListScreenState extends State<LoanListScreen> {
   @override
   void initState() {
     super.initState();
-    final p = Provider.of<LoansProvider>(context, listen: false);
-    p.loadProducts();
+    // Use addPostFrameCallback to avoid calling setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final p = Provider.of<LoansProvider>(context, listen: false);
+      p.loadProducts();
+    });
   }
 
   @override

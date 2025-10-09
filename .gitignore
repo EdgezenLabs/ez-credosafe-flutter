@@ -18,20 +18,36 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code related
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
 
 # Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+**/*.dart_tool/
+**/.dart_tool/
 .dart_tool/
+**/doc/api/
+**/.last_build_id
+**/ios/Flutter/.last_build_id
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-/build/
+build/
+**/build/
+**/generated_plugin_registrant.dart
+.fvm/
+pubspec.lock
+
+# Web related
+lib/generated_plugin_registrant.dart
+web/sqlite_worker.js
+web/sql-wasm.wasm
 
 # Symbolication related
 app.*.symbols
@@ -39,7 +55,116 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Android related
+**/android/**/gradle-wrapper.jar
+**/android/.gradle
+**/android/captures/
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+**/android/.idea/
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/android/gradlew
+**/android/gradlew.bat
+
+# Firebase configuration files
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+.firebase/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# FVM (Flutter Version Management)
+.fvm/flutter_sdk
+
+# Coverage
+coverage/
+
+# Local files that should not be committed
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+/lib/generated/
+/assets/env/.env.*
+!/assets/env/.env.example
+
+# macOS related
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/GeneratedPluginRegistrant.*
+**/macos/.plugin_symlinks/
+**/macos/Flutter/ephemeral
+**/macos/Flutter/Flutter-Debug.xcconfig
+**/macos/Flutter/Flutter-Profile.xcconfig
+**/macos/Flutter/Flutter-Release.xcconfig
+**/macos/Pods/
+
+# iOS/XCode related
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Pods/
+**/ios/**/profile
+**/ios/**/xcuserdata
+**/ios/.generated/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/Podfile.lock
+
+# Windows related
+**/windows/flutter/ephemeral/
+**/windows/flutter/generated_plugin_registrant.*
+**/windows/flutter/generated_plugins.cmake
+**/windows/.plugin_symlinks/
+
+# Linux related
+**/linux/flutter/ephemeral/
+**/linux/flutter/generated_plugin_registrant.*
+**/linux/flutter/generated_plugins.cmake
+**/linux/.plugin_symlinks/
+
+# Web related
+**/web/packages/
+**/web/vendor/
+
+# Generated code files that shouldn't be in version control
+**/*.g.dart
+**/*.gr.dart
+**/*.freezed.dart
+**/*.mocks.dart
+**/generated_plugin_registrant.*
+
+# Exception for generated localization files
+!lib/generated/l10n.dart
+!lib/generated/intl/
+
+# Don't commit any cached files
+.last_build_id
+*.lock
+**/*.lock
+.last_version
+*.generated.*
+GeneratedPluginRegistrant.*

@@ -3,7 +3,11 @@ import 'package:provider/provider.dart';
 import 'services/api_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/loans_provider.dart';
+import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/otp_verification_screen.dart';
+import 'screens/success_screen.dart';
+import 'screens/password_setup_screen.dart';
 import 'screens/loan_list_screen.dart';
 
 void main() async {
@@ -28,13 +32,20 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AuthProvider>(builder: (context, authProv, _) {
         return MaterialApp(
-          title: 'VS Corporate Lending',
-          theme: ThemeData(primarySwatch: Colors.blue),
+          title: 'Credosafe',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
           debugShowCheckedModeBanner: false,
-          initialRoute: authProv.isLoggedIn ? '/loans' : '/',
+          initialRoute: '/',
           routes: {
-            '/': (context) => const LoginScreen(),
+            '/': (context) => const SplashScreen(),
+            '/login': (context) => const LoginScreen(),
+            '/otp': (context) => const OTPVerificationScreen(email: ''),
+            '/success': (context) => const SuccessScreen(),
+            '/password-setup': (context) => const PasswordSetupScreen(email: ''),
             '/loans': (context) => const LoanListScreen(),
+            '/loan-list': (context) => const LoanListScreen(),
           },
         );
       }),

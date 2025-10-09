@@ -13,8 +13,11 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
   @override
   void initState() {
     super.initState();
-    final p = Provider.of<LoansProvider>(context, listen: false);
-    p.loadMyApplications();
+    // Use addPostFrameCallback to avoid calling setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final p = Provider.of<LoansProvider>(context, listen: false);
+      p.loadMyApplications();
+    });
   }
 
   @override

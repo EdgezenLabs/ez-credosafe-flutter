@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import '../config/constants.dart';
+import '../models/otp.dart';
 
 class ApiService {
   final Dio _dio;
@@ -16,6 +17,28 @@ class ApiService {
   Future<Map<String, dynamic>> login(String email, String password) async {
     final resp = await _dio.post('/auth/login', data: {'email': email, 'password': password});
     return resp.data;
+  }
+
+  // Send OTP to email
+  Future<OtpResponse> sendOtp(String email) async {
+    try {
+      final request = OtpRequest(email: email);
+      final resp = await _dio.post('/auth/send-otp', data: request.toJson());
+      return OtpResponse.fromJson(resp.data);
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  // Verify OTP
+  Future<OtpVerificationResponse> verifyOtp(String email, String otp) async {
+    try {
+      final request = OtpVerificationRequest(email: email, otp: otp);
+      final resp = await _dio.post('/auth/verify-otp', data: request.toJson());
+      return OtpVerificationResponse.fromJson(resp.data);
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
   }
 
   // Get loan products
@@ -55,5 +78,25 @@ class ApiService {
   Future<Map<String, dynamic>> getApplication(String token, int id) async {
     final resp = await _dio.get('/applications/$id', options: Options(headers: {'Authorization': 'Bearer $token'}));
     return resp.data;
+  }
+
+  // Private helper method for handling Dio exceptions
+  Exception _handleDioException(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return Exception('Request timeout. Please check your internet connection.');
+      case DioExceptionType.badResponse:
+        final statusCode = e.response?.statusCode;
+        final message = e.response?.data['message'] ?? 'Server error occurred';
+        return Exception('Error $statusCode: $message');
+      case DioExceptionType.cancel:
+        return Exception('Request was cancelled');
+      case DioExceptionType.connectionError:
+        return Exception('Connection failed. Please check your internet connection.');
+      default:
+        return Exception('An unexpected error occurred: ${e.message}');
+    }
   }
 }
