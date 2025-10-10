@@ -5,6 +5,7 @@ import '../config/constants.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/index.dart';
 import 'otp_verification_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -207,7 +208,12 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           alignment: Alignment.centerRight,
           child: TextButton(
             onPressed: () { 
-              // TODO: Implement forgot password functionality
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ForgotPasswordScreen(),
+                ),
+              );
             },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
