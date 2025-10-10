@@ -80,6 +80,29 @@ class ApiService {
     return resp.data;
   }
 
+  // Forgot password - send reset link to email
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final resp = await _dio.post('/auth/forgot-password', data: {'email': email});
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  // Reset password with token
+  Future<Map<String, dynamic>> resetPassword(String token, String newPassword) async {
+    try {
+      final resp = await _dio.post('/auth/reset-password', data: {
+        'token': token,
+        'password': newPassword,
+      });
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
   // Private helper method for handling Dio exceptions
   Exception _handleDioException(DioException e) {
     switch (e.type) {
