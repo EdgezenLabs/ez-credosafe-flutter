@@ -92,7 +92,7 @@ class _OTPFieldState extends State<OTPField> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(widget.length, (index) {
-        return Container(
+        return SizedBox(
           width: widget.fieldWidth,
           height: widget.fieldHeight,
           child: TextFormField(

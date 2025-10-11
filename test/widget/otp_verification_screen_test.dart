@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ez_credosafe_flutter/screens/otp_verification_screen.dart';
-import 'package:ez_credosafe_flutter/widgets/index.dart';
 import '../helpers/test_helper.dart';
 import '../mocks/mock_classes.dart';
 
@@ -10,7 +9,7 @@ void main() {
   group('OTPVerificationScreen Widget Tests', () {
     late MockApiService mockApiService;
     late MockAuthProvider mockAuthProvider;
-    final String testEmail = TestData.validEmail;
+    const String testEmail = TestData.validEmail;
 
     setUp(() {
       mockApiService = MockApiService();
@@ -30,7 +29,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -47,7 +46,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -61,7 +60,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -79,7 +78,7 @@ void main() {
       // Arrange
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -103,7 +102,7 @@ void main() {
 
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -132,7 +131,7 @@ void main() {
 
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -148,7 +147,7 @@ void main() {
 
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -171,7 +170,7 @@ void main() {
 
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -198,7 +197,7 @@ void main() {
       // Arrange
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -213,7 +212,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -226,7 +225,7 @@ void main() {
       // Arrange
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        OTPVerificationScreen(email: testEmail),
+        const OTPVerificationScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );

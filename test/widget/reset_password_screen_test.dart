@@ -10,8 +10,8 @@ void main() {
   group('ResetPasswordScreen Widget Tests', () {
     late MockApiService mockApiService;
     late MockAuthProvider mockAuthProvider;
-    final testToken = TestData.validToken;
-    final testEmail = TestData.validEmail;
+    const testToken = TestData.validToken;
+    const testEmail = TestData.validEmail;
 
     setUp(() {
       mockApiService = MockApiService();
@@ -25,7 +25,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        ResetPasswordScreen(token: testToken, email: testEmail),
+        const ResetPasswordScreen(token: testToken, email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -39,7 +39,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        ResetPasswordScreen(token: testToken, email: testEmail),
+        const ResetPasswordScreen(token: testToken, email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -52,7 +52,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        ResetPasswordScreen(token: testToken, email: testEmail),
+        const ResetPasswordScreen(token: testToken, email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -65,7 +65,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        ResetPasswordScreen(token: testToken, email: testEmail),
+        const ResetPasswordScreen(token: testToken, email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -79,7 +79,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        ResetPasswordScreen(token: testToken, email: testEmail),
+        const ResetPasswordScreen(token: testToken, email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -92,7 +92,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        ResetPasswordScreen(token: testToken, email: testEmail),
+        const ResetPasswordScreen(token: testToken, email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );

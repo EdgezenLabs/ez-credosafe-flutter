@@ -15,8 +15,12 @@ class ApiService {
 
   // Login
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final resp = await _dio.post('/auth/login', data: {'email': email, 'password': password});
-    return resp.data;
+    try {
+      final resp = await _dio.post('/auth/login', data: {'email': email, 'password': password});
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
   }
 
   // Send OTP to email
@@ -97,6 +101,24 @@ class ApiService {
         'token': token,
         'password': newPassword,
       });
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  // Set password for new user (requires bearer token from verify-otp)
+  Future<Map<String, dynamic>> setPassword(String token, String email, String password) async {
+    try {
+      final resp = await _dio.post('/auth/set-password', 
+        data: {
+          'email': email,
+          'password': password,
+        },
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
       return resp.data;
     } on DioException catch (e) {
       throw _handleDioException(e);

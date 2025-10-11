@@ -35,7 +35,7 @@ class CustomCheckbox extends StatelessWidget {
         activeColor: activeColor,
         checkColor: checkColor,
         side: BorderSide(
-          color: borderColor.withOpacity(0.4),
+          color: borderColor.withValues(alpha: 0.4),
           width: 1,
         ),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

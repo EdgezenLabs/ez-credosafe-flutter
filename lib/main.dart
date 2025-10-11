@@ -12,9 +12,10 @@ import 'screens/password_setup_screen.dart';
 import 'screens/loan_list_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/reset_password_screen.dart';
+import 'utils/logger.dart';
 
 // Conditional import for web
-import 'dart:html' as html if (dart.library.html) 'dart:html';
+import 'package:web/web.dart' as web;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
     Map<String, String> webQueryParams = {};
     if (kIsWeb) {
       try {
-        final webUri = Uri.parse(kIsWeb ? html.window.location.href : '');
+        final webUri = Uri.parse(kIsWeb ? web.window.location.href : '');
         webQueryParams = webUri.queryParameters;
       } catch (e) {
         // If there's an error, use empty params
@@ -102,8 +103,7 @@ class MyApp extends StatelessWidget {
         
         if (kIsWeb) {
           try {
-            final currentUrl = kIsWeb ? html.window.location.href : '';
-            print('Current URL: $currentUrl'); // Debug
+            final currentUrl = kIsWeb ? web.window.location.href : '';
             
             // Simple check if URL contains reset-password and token
             if (currentUrl.contains('/reset-password') && currentUrl.contains('token=')) {
@@ -112,17 +112,14 @@ class MyApp extends StatelessWidget {
               final token = uri.queryParameters['token'] ?? '';
               final email = uri.queryParameters['email'] ?? '';
               
-              print('Reset password URL detected'); // Debug
-              print('Token: $token'); // Debug
-              print('Email: $email'); // Debug
+             
               
               if (token.isNotEmpty) {
                 initialWidget = ResetPasswordScreen(token: token, email: email);
-                print('Setting initial widget to ResetPasswordScreen'); // Debug
               }
             }
           } catch (e) {
-            print('Error parsing URL: $e'); // Debug
+            AppLogger.error('Error parsing URL', e);
             // If there's an error, default to splash screen
           }
         }

@@ -93,7 +93,7 @@ void main() {
       test('should send OTP successfully', () async {
         // Arrange
         const email = TestData.validEmail;
-        final otpResponse = OtpResponse(
+        const otpResponse = OtpResponse(
           success: true,
           message: 'OTP sent successfully',
           sessionId: 'test-session-123',
@@ -137,7 +137,7 @@ void main() {
         // Arrange
         const email = TestData.validEmail;
         const otp = TestData.validOtp;
-        final verificationResponse = OtpVerificationResponse(
+        const verificationResponse = OtpVerificationResponse(
           success: true,
           message: 'OTP verified successfully',
           token: TestData.validToken,
@@ -165,7 +165,7 @@ void main() {
         // Arrange
         const email = TestData.validEmail;
         const otp = 'invalid';
-        final verificationResponse = OtpVerificationResponse(
+        const verificationResponse = OtpVerificationResponse(
           success: false,
           message: 'Invalid OTP',
           token: null,

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../providers/auth_provider.dart';
 import '../screens/reset_password_screen.dart';
 import '../utils/url_helper.dart';
+import '../utils/logger.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -58,15 +59,15 @@ class _SplashScreenState extends State<SplashScreen>
       if (kIsWeb) {
         try {
           final currentUrl = UrlHelper.getCurrentUrl();
-          print('Splash - Current URL: $currentUrl'); // Debug
+          AppLogger.debug('Splash - Current URL: $currentUrl');
           
           if (currentUrl.contains('/reset-password') && currentUrl.contains('token=')) {
             final urlParams = UrlHelper.getUrlParameters();
             final token = urlParams['token'] ?? '';
             final email = urlParams['email'] ?? '';
             
-            print('Splash - Reset password URL detected'); // Debug
-            print('Splash - Token: $token'); // Debug
+            AppLogger.debug('Splash - Reset password URL detected');
+            AppLogger.debug('Splash - Token: $token');
             
             if (token.isNotEmpty) {
               Navigator.pushReplacement(
@@ -79,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
             }
           }
         } catch (e) {
-          print('Splash - Error parsing URL: $e'); // Debug
+          AppLogger.error('Splash - Error parsing URL', e);
         }
       }
       

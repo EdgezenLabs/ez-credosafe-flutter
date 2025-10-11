@@ -65,15 +65,15 @@ class CustomTextField extends StatelessWidget {
             hintStyle: AppTextStyles.fieldHint,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
-              borderSide: BorderSide(color: AppColors.borderColor, width: 1),
+              borderSide: const BorderSide(color: AppColors.borderColor, width: 1),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
-              borderSide: BorderSide(color: AppColors.borderColor, width: 1),
+              borderSide: const BorderSide(color: AppColors.borderColor, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
-              borderSide: BorderSide(color: AppColors.focusedBorderColor, width: 2),
+              borderSide: const BorderSide(color: AppColors.focusedBorderColor, width: 2),
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
@@ -81,11 +81,11 @@ class CustomTextField extends StatelessWidget {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
-              borderSide: BorderSide(color: AppColors.errorColor, width: 1),
+              borderSide: const BorderSide(color: AppColors.errorColor, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
-              borderSide: BorderSide(color: AppColors.errorColor, width: 2),
+              borderSide: const BorderSide(color: AppColors.errorColor, width: 2),
             ),
             contentPadding: contentPadding ??
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

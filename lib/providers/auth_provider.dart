@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/api_service.dart';
 import '../models/user.dart';
 import '../models/otp.dart';
+import '../utils/logger.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService api;
@@ -48,12 +49,30 @@ class AuthProvider extends ChangeNotifier {
     
     try {
       final res = await api.login(email, password);
-      _token = res['token'];
+      
+      // Debug logging to help troubleshoot
+      AppLogger.debug('Login API response: $res');
+      
+      // Handle the correct API response structure
+      _token = res['access_token'] ?? res['token']; // Try both field names for compatibility
+      
+      if (_token == null || _token!.isEmpty) {
+        throw Exception('No authentication token received from server');
+      }
+      
+      AppLogger.debug('Token extracted: $_token');
+      
       if (res['user'] != null) {
         _user = User.fromJson(res['user']);
+        AppLogger.debug('User data parsed: ${_user?.email}');
       }
-      await _storage.write(key: 'token', value: _token ?? '');
+      
+      await _storage.write(key: 'token', value: _token!);
+      notifyListeners();
+      
+      AppLogger.info('Login successful for user: $email');
     } catch (e) {
+      AppLogger.error('Login failed for user: $email', e);
       _setError(e.toString());
       rethrow;
     } finally {
@@ -126,6 +145,29 @@ class AuthProvider extends ChangeNotifier {
     
     try {
       await api.resetPassword(token, newPassword);
+    } catch (e) {
+      _setError(e.toString());
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Set password for new user (requires bearer token from verify-otp)
+  Future<void> setPassword(String email, String password) async {
+    _setLoading(true);
+    _setError(null);
+    
+    try {
+      if (_token == null) {
+        throw Exception('No authentication token available. Please verify OTP first.');
+      }
+      
+      await api.setPassword(_token!, email, password);
+      
+      // The password setup is successful, user is now fully authenticated
+      // The token should remain the same from OTP verification
+      notifyListeners();
     } catch (e) {
       _setError(e.toString());
       rethrow;

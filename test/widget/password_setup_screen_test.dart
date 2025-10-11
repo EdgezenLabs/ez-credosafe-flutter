@@ -9,7 +9,7 @@ void main() {
   group('PasswordSetupScreen Widget Tests', () {
     late MockApiService mockApiService;
     late MockAuthProvider mockAuthProvider;
-    final testEmail = TestData.validEmail;
+    const testEmail = TestData.validEmail;
 
     setUp(() {
       mockApiService = MockApiService();
@@ -23,7 +23,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        PasswordSetupScreen(email: testEmail),
+        const PasswordSetupScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -38,7 +38,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        PasswordSetupScreen(email: testEmail),
+        const PasswordSetupScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -51,7 +51,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        PasswordSetupScreen(email: testEmail),
+        const PasswordSetupScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -66,7 +66,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        PasswordSetupScreen(email: testEmail),
+        const PasswordSetupScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -79,7 +79,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        PasswordSetupScreen(email: testEmail),
+        const PasswordSetupScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -97,7 +97,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        PasswordSetupScreen(email: testEmail),
+        const PasswordSetupScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -111,7 +111,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        PasswordSetupScreen(email: testEmail),
+        const PasswordSetupScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );

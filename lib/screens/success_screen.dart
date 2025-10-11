@@ -75,11 +75,11 @@ class SuccessScreen extends StatelessWidget {
                       ),
                       color: const Color(0xFFF9FDF9), // Very light green/white background
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Icon(
                         Icons.check_rounded, // Rounded check for smoother edges
                         size: 55,
-                        color: const Color(0xFF4CAF50), // Bright green check mark
+                        color: Color(0xFF4CAF50), // Bright green check mark
                       ),
                     ),
                   ),

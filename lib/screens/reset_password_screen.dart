@@ -96,11 +96,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     if (widget.token.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
+          content: const Row(
             children: [
-              const Icon(Icons.error_outline, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              const Expanded(
+              Icon(Icons.error_outline, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'Invalid reset token. Please request a new password reset link.',
                   style: TextStyle(fontSize: 14),
@@ -130,11 +130,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         // Show success message and navigate to login
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
-                const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                const Expanded(
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Expanded(
                   child: Text(
                     'Password reset successfully! Please sign in with your new password.',
                     style: TextStyle(fontSize: 14),
@@ -318,10 +318,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   padding: const EdgeInsets.all(16),
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGold.withOpacity(0.05),
+                    color: AppColors.primaryGold.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppColors.primaryGold.withOpacity(0.2),
+                      color: AppColors.primaryGold.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),

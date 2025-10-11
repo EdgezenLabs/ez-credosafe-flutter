@@ -9,7 +9,7 @@ void main() {
   group('SuccessScreen Widget Tests', () {
     late MockApiService mockApiService;
     late MockAuthProvider mockAuthProvider;
-    final testEmail = TestData.validEmail;
+    const testEmail = TestData.validEmail;
 
     setUp(() {
       mockApiService = MockApiService();
@@ -23,7 +23,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        SuccessScreen(email: testEmail),
+        const SuccessScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -39,7 +39,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        SuccessScreen(email: testEmail),
+        const SuccessScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -52,7 +52,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        SuccessScreen(email: testEmail),
+        const SuccessScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -65,7 +65,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        SuccessScreen(email: testEmail),
+        const SuccessScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -79,7 +79,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        SuccessScreen(email: testEmail),
+        const SuccessScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );
@@ -112,7 +112,7 @@ void main() {
       // Act
       await TestHelper.pumpWidgetWithProviders(
         tester,
-        SuccessScreen(email: testEmail),
+        const SuccessScreen(email: testEmail),
         authProvider: mockAuthProvider,
         apiService: mockApiService,
       );

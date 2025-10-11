@@ -21,24 +21,24 @@ class MockOtpVerificationResponse extends Mock implements OtpVerificationRespons
 
 // Test data utilities
 class TestDataUtils {
-  static OtpResponse successOtpResponse() => OtpResponse(
+  static OtpResponse successOtpResponse() => const OtpResponse(
     success: true,
     message: 'OTP sent successfully',
   );
   
-  static OtpResponse failureOtpResponse() => OtpResponse(
+  static OtpResponse failureOtpResponse() => const OtpResponse(
     success: false,
     message: 'Failed to send OTP',
   );
   
-  static OtpVerificationResponse successVerificationResponse() => OtpVerificationResponse(
+  static OtpVerificationResponse successVerificationResponse() => const OtpVerificationResponse(
     success: true,
     message: 'OTP verified successfully',
     token: 'test-token-123',
     user: {'id': 1, 'email': 'test@example.com'},
   );
   
-  static OtpVerificationResponse failureVerificationResponse() => OtpVerificationResponse(
+  static OtpVerificationResponse failureVerificationResponse() => const OtpVerificationResponse(
     success: false,
     message: 'Invalid OTP',
     token: null,

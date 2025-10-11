@@ -1,11 +1,11 @@
-// Web implementation using dart:html
-import 'dart:html' as html;
+// Web implementation using package:web
+import 'package:web/web.dart' as web;
 
 String getCurrentUrl() {
-  return html.window.location.href;
+  return web.window.location.href;
 }
 
 Map<String, String> getUrlParameters() {
-  final uri = Uri.parse(html.window.location.href);
+  final uri = Uri.parse(web.window.location.href);
   return uri.queryParameters;
 }
