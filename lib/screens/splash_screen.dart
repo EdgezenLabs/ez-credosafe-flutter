@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import '../config/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../screens/reset_password_screen.dart';
+import '../utils/url_helper.dart';
+import '../utils/logger.dart';
 import 'package:provider/provider.dart';
-
-// Conditional import for web
-import 'dart:html' as html show window;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -60,16 +58,16 @@ class _SplashScreenState extends State<SplashScreen>
       // Check for reset password URL first (web only)
       if (kIsWeb) {
         try {
-          final currentUrl = html.window.location.href;
-          print('Splash - Current URL: $currentUrl'); // Debug
+          final currentUrl = UrlHelper.getCurrentUrl();
+          AppLogger.debug('Splash - Current URL: $currentUrl');
           
           if (currentUrl.contains('/reset-password') && currentUrl.contains('token=')) {
-            final uri = Uri.parse(currentUrl);
-            final token = uri.queryParameters['token'] ?? '';
-            final email = uri.queryParameters['email'] ?? '';
+            final urlParams = UrlHelper.getUrlParameters();
+            final token = urlParams['token'] ?? '';
+            final email = urlParams['email'] ?? '';
             
-            print('Splash - Reset password URL detected'); // Debug
-            print('Splash - Token: $token'); // Debug
+            AppLogger.debug('Splash - Reset password URL detected');
+            AppLogger.debug('Splash - Token: $token');
             
             if (token.isNotEmpty) {
               Navigator.pushReplacement(
@@ -82,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
             }
           }
         } catch (e) {
-          print('Splash - Error parsing URL: $e'); // Debug
+          AppLogger.error('Splash - Error parsing URL', e);
         }
       }
       

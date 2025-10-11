@@ -38,8 +38,11 @@ class _LoanListScreenState extends State<LoanListScreen> {
         IconButton(
           icon: const Icon(Icons.logout),
           onPressed: () async {
+            final navigator = Navigator.of(context);
             await auth.logout();
-            Navigator.pushReplacementNamed(context, '/');
+            if (mounted) {
+              navigator.pushReplacementNamed('/');
+            }
           },
         )
       ]),

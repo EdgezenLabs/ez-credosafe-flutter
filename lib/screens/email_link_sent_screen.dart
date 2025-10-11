@@ -31,11 +31,11 @@ class _EmailLinkSentScreenState extends State<EmailLinkSentScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
-                const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                const Expanded(
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Expanded(
                   child: Text(
                     'Reset link sent successfully!',
                     style: TextStyle(fontSize: 14),
@@ -160,10 +160,10 @@ class _EmailLinkSentScreenState extends State<EmailLinkSentScreen> {
                 height: 80,
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGold.withOpacity(0.1),
+                  color: AppColors.primaryGold.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(40),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.email_outlined,
                   size: 40,
                   color: AppColors.primaryGold,

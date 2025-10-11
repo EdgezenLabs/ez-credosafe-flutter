@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../config/app_text_styles.dart';
 import '../config/constants.dart';
 import '../providers/auth_provider.dart';
+import '../utils/validation_utils.dart';
 import '../widgets/index.dart';
 import 'otp_verification_screen.dart';
 import 'forgot_password_screen.dart';
@@ -16,11 +17,20 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   
+  // Form keys for validation
+  final _signInFormKey = GlobalKey<FormState>();
+  final _registerFormKey = GlobalKey<FormState>();
+  
   // Sign In form controllers
   final _signInEmail = TextEditingController();
   final _signInPassword = TextEditingController();
   bool _signInLoading = false;
   bool _agreeToTerms = false;
+  
+  // Validation error states
+  String? _emailError;
+  String? _passwordError;
+  bool _showValidationErrors = false;
   
   // Register form controllers
   final _registerEmail = TextEditingController();
@@ -33,6 +43,10 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     _tabController.addListener(() {
       setState(() {});
     });
+    
+    // Add listeners for real-time validation
+    _signInEmail.addListener(_validateSignInForm);
+    _signInPassword.addListener(_validateSignInForm);
   }
 
   @override
@@ -42,6 +56,40 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     _signInPassword.dispose();
     _registerEmail.dispose();
     super.dispose();
+  }
+
+  // Real-time validation for sign in form
+  void _validateSignInForm() {
+    if (_showValidationErrors) {
+      setState(() {
+        _emailError = ValidationUtils.validateEmail(_signInEmail.text);
+        _passwordError = ValidationUtils.validatePassword(_signInPassword.text);
+      });
+    }
+  }
+
+  // Validate form before submission
+  bool _validateBeforeSubmit() {
+    setState(() {
+      _showValidationErrors = true;
+      _emailError = ValidationUtils.validateEmail(_signInEmail.text);
+      _passwordError = ValidationUtils.validatePassword(_signInPassword.text);
+    });
+
+    return _emailError == null && _passwordError == null;
+  }
+
+  // Show error snackbar
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -178,163 +226,210 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   }
 
   Widget _buildSignInFormContent() {
-    return FormContainer(
-      padding: const EdgeInsets.all(0),
-      spacing: 20.0, // Reduced spacing
-      children: [
-        // Email Address with icon
-        CustomTextField(
-          label: '',
-          hintText: 'Email address',
-          controller: _signInEmail,
-          keyboardType: TextInputType.emailAddress,
-          showLabel: false,
-          prefixIcon: const Icon(
-            Icons.email_outlined,
-            color: AppColors.hintText,
-            size: 20,
-          ),
-        ),
-        
-        // Password with icon
-        PasswordField(
-          controller: _signInPassword,
-          showLabel: false,
-          hintText: 'Password',
-        ),
-        
-        // Forgot Password - right aligned
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(
-            onPressed: () { 
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ForgotPasswordScreen(),
+    return Form(
+      key: _signInFormKey,
+      child: FormContainer(
+        padding: const EdgeInsets.all(0),
+        spacing: 20.0, // Reduced spacing
+        children: [
+          // Email Address with icon and validation
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomTextField(
+                label: '',
+                hintText: 'Email address',
+                controller: _signInEmail,
+                keyboardType: TextInputType.emailAddress,
+                showLabel: false,
+                prefixIcon: const Icon(
+                  Icons.email_outlined,
+                  color: AppColors.hintText,
+                  size: 20,
                 ),
-              );
-            },
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                validator: (value) => ValidationUtils.validateEmail(value),
+              ),
+              if (_emailError != null && _showValidationErrors) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _emailError!,
+                  style: AppTextStyles.captionText.copyWith(
+                    color: AppColors.errorColor,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          
+          // Password with icon and validation
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PasswordField(
+                controller: _signInPassword,
+                showLabel: false,
+                hintText: 'Password',
+                validator: (value) => ValidationUtils.validatePassword(value),
+              ),
+              if (_passwordError != null && _showValidationErrors) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _passwordError!,
+                  style: AppTextStyles.captionText.copyWith(
+                    color: AppColors.errorColor,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          
+          // Forgot Password - right aligned
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () { 
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ForgotPasswordScreen(),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+              ),
+              child: Text(
+                'Forgot password?',
+                style: AppTextStyles.linkText,
+              ),
             ),
+          ),
+          
+          // Terms Agreement Checkbox
+          CustomCheckbox(
+            value: _agreeToTerms,
+            onChanged: (value) {
+              setState(() {
+                _agreeToTerms = value ?? false;
+              });
+            },
+            title: const TermsAndConditionsText(
+              isChecked: true,
+            ),
+          ),
+          
+          // Sign In Button
+          PrimaryButton(
+            text: 'Sign in',
+            onPressed: _agreeToTerms ? _handleSignIn : null,
+            isLoading: _signInLoading,
+            enabled: _agreeToTerms,
+          ),
+          
+          // Divider text
+          Center(
             child: Text(
-              'Forgot password?',
-              style: AppTextStyles.linkText,
+              'other way to sign in',
+              style: AppTextStyles.captionText,
             ),
           ),
-        ),
-        
-        // Terms Agreement Checkbox
-        CustomCheckbox(
-          value: _agreeToTerms,
-          onChanged: (value) {
-            setState(() {
-              _agreeToTerms = value ?? false;
-            });
-          },
-          title: const TermsAndConditionsText(
-            isChecked: true,
+          
+          // Social Login Buttons Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GoogleSignInButton(
+                onPressed: () {
+                  // TODO: Implement Google sign in
+                },
+              ),
+              const SizedBox(width: 16),
+              FacebookSignInButton(
+                onPressed: () {
+                  // TODO: Implement Facebook sign in
+                },
+              ),
+            ],
           ),
-        ),
-        
-        // Sign In Button
-        PrimaryButton(
-          text: 'Sign in',
-          onPressed: _agreeToTerms ? _handleSignIn : null,
-          isLoading: _signInLoading,
-          enabled: _agreeToTerms,
-        ),
-        
-        // Divider text
-        Center(
-          child: Text(
-            'other way to sign in',
-            style: AppTextStyles.captionText,
-          ),
-        ),
-        
-        // Social Login Buttons Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GoogleSignInButton(
-              onPressed: () {
-                // TODO: Implement Google sign in
+          
+          // Create Account Link
+          Center(
+            child: AuthLinkText(
+              normalText: "Don't have an account? ",
+              linkText: "Create Account",
+              onTap: () {
+                _tabController.animateTo(1);
               },
             ),
-            const SizedBox(width: 16),
-            FacebookSignInButton(
-              onPressed: () {
-                // TODO: Implement Facebook sign in
-              },
-            ),
-          ],
-        ),
-        
-        // Create Account Link
-        Center(
-          child: AuthLinkText(
-            normalText: "Don't have an account? ",
-            linkText: "Create Account",
-            onTap: () {
-              _tabController.animateTo(1);
-            },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildRegisterFormContent() {
-    return FormContainer(
-      padding: const EdgeInsets.all(0),
-      spacing: 20.0,
-      children: [
-        Text(
-          'Enter Email to send OTP',
-          style: AppTextStyles.bodyText.copyWith(
-            fontWeight: FontWeight.w500,
+    return Form(
+      key: _registerFormKey,
+      child: FormContainer(
+        padding: const EdgeInsets.all(0),
+        spacing: 20.0,
+        children: [
+          Text(
+            'Enter Email to send OTP',
+            style: AppTextStyles.bodyText.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-        
-        // Email field for registration with icon
-        CustomTextField(
-          label: '',
-          hintText: 'Email address',
-          controller: _registerEmail,
-          keyboardType: TextInputType.emailAddress,
-          showLabel: false,
-          prefixIcon: const Icon(
-            Icons.email_outlined,
-            color: AppColors.hintText,
-            size: 20,
+          
+          // Email field for registration with icon and validation
+          CustomTextField(
+            label: '',
+            hintText: 'Email address',
+            controller: _registerEmail,
+            keyboardType: TextInputType.emailAddress,
+            showLabel: false,
+            prefixIcon: const Icon(
+              Icons.email_outlined,
+              color: AppColors.hintText,
+              size: 20,
+            ),
+            validator: (value) => ValidationUtils.validateEmail(value),
           ),
-        ),
-        
-        // Send OTP Button
-        PrimaryButton(
-          text: 'Send OTP',
-          onPressed: _handleSendOTP,
-          isLoading: _registerLoading,
-        ),
-        
-        // Sign In Link
-        Center(
-          child: AuthLinkText(
-            normalText: "Already have an account? ",
-            linkText: "Back to Sign in",
-            onTap: () {
-              _tabController.animateTo(0);
-            },
+          
+          // Send OTP Button
+          PrimaryButton(
+            text: 'Send OTP',
+            onPressed: _handleSendOTP,
+            isLoading: _registerLoading,
           ),
-        ),
-      ],
+          
+          // Sign In Link
+          Center(
+            child: AuthLinkText(
+              normalText: "Already have an account? ",
+              linkText: "Back to Sign in",
+              onTap: () {
+                _tabController.animateTo(0);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Future<void> _handleSignIn() async {
-    if (_signInEmail.text.trim().isEmpty || _signInPassword.text.trim().isEmpty) {
+    // Validate form before proceeding
+    if (!_validateBeforeSubmit()) {
+      _showErrorSnackBar('Please fix the errors above before continuing');
+      return;
+    }
+
+    // Additional check for terms agreement
+    if (!_agreeToTerms) {
+      _showErrorSnackBar('Please agree to the terms and conditions');
       return;
     }
 
@@ -343,11 +438,22 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       await auth.login(_signInEmail.text.trim(), _signInPassword.text.trim());
+      
       if (mounted) {
+        // Clear validation errors on successful login
+        setState(() {
+          _showValidationErrors = false;
+          _emailError = null;
+          _passwordError = null;
+        });
+        
         Navigator.pushReplacementNamed(context, '/loans');
       }
     } catch (e) {
-      // Login failed - handle silently or log for debugging
+      // Show specific error message for login failure
+      if (mounted) {
+        _showErrorSnackBar('Login failed. Please check your credentials and try again.');
+      }
     } finally {
       if (mounted) {
         setState(() => _signInLoading = false);
@@ -356,7 +462,10 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   }
 
   Future<void> _handleSendOTP() async {
-    if (_registerEmail.text.trim().isEmpty) {
+    // Validate email before sending OTP
+    final emailError = ValidationUtils.validateEmail(_registerEmail.text);
+    if (emailError != null) {
+      _showErrorSnackBar(emailError);
       return;
     }
 
@@ -377,24 +486,14 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           );
         } else {
           // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.message.isNotEmpty 
-                  ? response.message 
-                  : 'Failed to send OTP. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          _showErrorSnackBar(response.message.isNotEmpty 
+              ? response.message 
+              : 'Failed to send OTP. Please try again.');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send OTP: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showErrorSnackBar('Failed to send OTP: ${e.toString()}');
       }
     } finally {
       if (mounted) {

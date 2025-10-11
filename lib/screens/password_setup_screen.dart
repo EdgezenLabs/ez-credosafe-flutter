@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../config/app_text_styles.dart';
 import '../config/constants.dart';
+import '../providers/auth_provider.dart';
+import '../utils/logger.dart';
 
 class PasswordSetupScreen extends StatefulWidget {
   final String email;
@@ -29,31 +32,52 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
   }
 
   bool get _isPasswordValid {
-    return _newPasswordController.text.isNotEmpty &&
-           _confirmPasswordController.text.isNotEmpty &&
-           _newPasswordController.text == _confirmPasswordController.text &&
-           _newPasswordController.text.length >= 6;
+    final password = _newPasswordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+    
+    return password.isNotEmpty &&
+           confirmPassword.isNotEmpty &&
+           password == confirmPassword &&
+           _isPasswordStrong(password);
+  }
+
+  bool _isPasswordStrong(String password) {
+    // Password requirements: at least 8 characters, uppercase, lowercase, digit, special char
+    return password.length >= 8 &&
+           password.contains(RegExp(r'[A-Z]')) &&      // uppercase letter
+           password.contains(RegExp(r'[a-z]')) &&      // lowercase letter
+           password.contains(RegExp(r'[0-9]')) &&      // digit
+           password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]')); // special character
   }
 
   Future<void> _handleSubmit() async {
     if (!_isPasswordValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please ensure passwords match and meet requirements')),
+      );
       return;
     }
 
     setState(() => _isLoading = true);
     
     try {
-      // TODO: Implement password setup API call
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.setPassword(widget.email, _newPasswordController.text);
+      
+      AppLogger.info('Password setup successful for email: ${widget.email}');
       
       if (mounted) {
-        // Navigate to main app (replace with actual navigation)
+        // Navigate to loans screen on successful password setup
         Navigator.of(context).pushReplacementNamed('/loans');
       }
     } catch (e) {
+      AppLogger.error('Password setup failed', e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error setting up password: $e')),
+          SnackBar(
+            content: Text('Error setting up password: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -61,6 +85,29 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Widget _buildRequirementRow(String requirement, bool isMet) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle : Icons.cancel,
+            color: isMet ? Colors.green : Colors.grey,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            requirement,
+            style: AppTextStyles.poppins(
+              fontSize: 12,
+              color: isMet ? Colors.green : Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -204,6 +251,71 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
                       ),
                     ),
                   ),
+
+                  // Password requirements
+                  if (_newPasswordController.text.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGold.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.primaryGold.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Password Requirements:',
+                            style: AppTextStyles.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryGold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildRequirementRow('At least 8 characters', _newPasswordController.text.length >= 8),
+                          _buildRequirementRow('Uppercase letter (A-Z)', _newPasswordController.text.contains(RegExp(r'[A-Z]'))),
+                          _buildRequirementRow('Lowercase letter (a-z)', _newPasswordController.text.contains(RegExp(r'[a-z]'))),
+                          _buildRequirementRow('Number (0-9)', _newPasswordController.text.contains(RegExp(r'[0-9]'))),
+                          _buildRequirementRow('Special character (!@#\$%^&*)', _newPasswordController.text.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Password match indicator
+                  if (_confirmPasswordController.text.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          _newPasswordController.text == _confirmPasswordController.text
+                              ? Icons.check_circle
+                              : Icons.cancel,
+                          color: _newPasswordController.text == _confirmPasswordController.text
+                              ? Colors.green
+                              : Colors.red,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _newPasswordController.text == _confirmPasswordController.text
+                              ? 'Passwords match'
+                              : 'Passwords do not match',
+                          style: AppTextStyles.poppins(
+                            fontSize: 12,
+                            color: _newPasswordController.text == _confirmPasswordController.text
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   
                   const SizedBox(height: 40),
                   

@@ -135,7 +135,7 @@ class _CustomTabBarState extends State<CustomTabBar>
         final tabWidth = constraints.maxWidth / widget.tabs.length;
         final leftPosition = (_tabController.index * tabWidth) + (tabWidth / 2) - 8;
 
-        return Container(
+        return SizedBox(
           width: double.infinity,
           height: 16,
           child: Stack(
@@ -178,7 +178,7 @@ class TrianglePainter extends CustomPainter {
     
     // Add a slight shadow for depth
     final shadowPaint = Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
       

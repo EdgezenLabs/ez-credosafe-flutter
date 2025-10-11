@@ -425,7 +425,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                           'Resend in ${_countdownSeconds}s',
                           style: AppTextStyles.poppins(
                             fontSize: 12,
-                            color: const Color(0xFFC29A48).withOpacity(0.7),
+                            color: const Color(0xFFC29A48).withValues(alpha: 0.7),
                           ),
                         ),
                       ],
@@ -448,7 +448,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: _isOTPComplete ? [
                         BoxShadow(
-                          color: AppColors.primaryGold.withOpacity(0.3),
+                          color: AppColors.primaryGold.withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
