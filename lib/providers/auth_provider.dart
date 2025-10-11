@@ -6,13 +6,14 @@ import '../models/otp.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService api;
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage _storage;
   String? _token;
   User? _user;
   bool _isLoading = false;
   String? _error;
 
-  AuthProvider(this.api);
+  AuthProvider(this.api, {FlutterSecureStorage? storage}) 
+      : _storage = storage ?? const FlutterSecureStorage();
 
   bool get isLoggedIn => _token != null;
   String? get token => _token;

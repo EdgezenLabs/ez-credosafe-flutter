@@ -14,7 +14,7 @@ import 'screens/forgot_password_screen.dart';
 import 'screens/reset_password_screen.dart';
 
 // Conditional import for web
-import 'dart:html' as html show window;
+import 'dart:html' as html if (dart.library.html) 'dart:html';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
     Map<String, String> webQueryParams = {};
     if (kIsWeb) {
       try {
-        final webUri = Uri.parse(html.window.location.href);
+        final webUri = Uri.parse(kIsWeb ? html.window.location.href : '');
         webQueryParams = webUri.queryParameters;
       } catch (e) {
         // If there's an error, use empty params
@@ -102,7 +102,7 @@ class MyApp extends StatelessWidget {
         
         if (kIsWeb) {
           try {
-            final currentUrl = html.window.location.href;
+            final currentUrl = kIsWeb ? html.window.location.href : '';
             print('Current URL: $currentUrl'); // Debug
             
             // Simple check if URL contains reset-password and token
