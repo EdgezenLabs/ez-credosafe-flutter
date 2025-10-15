@@ -447,7 +447,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           _passwordError = null;
         });
         
-        Navigator.pushReplacementNamed(context, '/loans');
+        Navigator.pushReplacementNamed(context, '/loan-dashboard');
       }
     } catch (e) {
       // Show specific error message for login failure

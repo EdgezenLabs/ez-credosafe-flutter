@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'services/api_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/loans_provider.dart';
+import 'providers/loan_status_provider.dart';
+import 'providers/loan_application_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/otp_verification_screen.dart';
@@ -12,6 +14,7 @@ import 'screens/password_setup_screen.dart';
 import 'screens/loan_list_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/reset_password_screen.dart';
+import 'screens/loan_routing_screen.dart';
 import 'utils/logger.dart';
 
 // Conditional import for web
@@ -84,6 +87,8 @@ class MyApp extends StatelessWidget {
       case '/loans':
       case '/loan-list':
         return MaterialPageRoute(builder: (_) => const LoanListScreen());
+      case '/loan-dashboard':
+        return MaterialPageRoute(builder: (_) => const LoanRoutingScreen());
       default:
         // Unknown route, redirect to splash
         return MaterialPageRoute(builder: (_) => const SplashScreen());
@@ -96,6 +101,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AuthProvider>.value(value: auth),
         ChangeNotifierProvider<LoansProvider>(create: (_) => LoansProvider(api, auth)),
+        ChangeNotifierProvider<LoanStatusProvider>(create: (_) => LoanStatusProvider()),
+        ChangeNotifierProvider<LoanApplicationProvider>(create: (_) => LoanApplicationProvider()),
       ],
       child: Consumer<AuthProvider>(builder: (context, authProv, _) {
         // Determine initial widget based on URL for web
