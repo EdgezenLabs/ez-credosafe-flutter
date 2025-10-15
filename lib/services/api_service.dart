@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../config/constants.dart';
 import '../models/otp.dart';
 
@@ -114,6 +116,232 @@ class ApiService {
         data: {
           'email': email,
           'password': password,
+        },
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  // Apply for Loan - New API integration
+  Future<Map<String, dynamic>> applyForLoan({
+    required String token,
+    required String loanType,
+    required double requestedAmount,
+    required String purpose,
+    required String employmentType,
+    required double monthlyIncome,
+    required double existingEmis,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        '/loan/apply',
+        data: {
+          'loan_type': loanType,
+          'requested_amount': requestedAmount,
+          'purpose': purpose,
+          'employment_type': employmentType,
+          'monthly_income': monthlyIncome,
+          'existing_emis': existingEmis,
+        },
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  // Upload Application Document
+  Future<Map<String, dynamic>> uploadApplicationDocument({
+    required String token,
+    required String applicationId,
+    required String documentType,
+    required PlatformFile platformFile,
+  }) async {
+    try {
+      print('ApiService.uploadApplicationDocument called');
+      print('Application ID: $applicationId');
+      print('Document Type: $documentType');
+      print('Platform: ${kIsWeb ? "Web" : "Mobile/Desktop"}');
+      
+      MultipartFile multipartFile;
+      
+      if (kIsWeb) {
+        // Web: use bytes (path is not available on web)
+        print('Using bytes for web platform');
+        if (platformFile.bytes == null) {
+          throw Exception('File bytes are null on web platform');
+        }
+        multipartFile = MultipartFile.fromBytes(
+          platformFile.bytes!,
+          filename: platformFile.name,
+        );
+        print('Multipart file created from bytes: ${platformFile.name}');
+      } else {
+        // Mobile/Desktop: use file path
+        print('Using file path for mobile/desktop platform');
+        if (platformFile.path == null) {
+          throw Exception('File path is null on mobile platform');
+        }
+        multipartFile = await MultipartFile.fromFile(
+          platformFile.path!,
+          filename: platformFile.name,
+        );
+        print('Multipart file created from path: ${platformFile.path}');
+      }
+
+      final formData = FormData.fromMap({
+        'document_type': documentType,
+        'file': multipartFile,
+      });
+
+      print('Making POST request to: /loan/application/$applicationId/documents');
+      final resp = await _dio.post(
+        '/loan/application/$applicationId/documents',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+      
+      print('Upload API response status: ${resp.statusCode}');
+      print('Upload API response data: ${resp.data}');
+      return resp.data;
+    } on DioException catch (e) {
+      print('DioException in uploadApplicationDocument: ${e.message}');
+      print('DioException response: ${e.response?.data}');
+      print('DioException status code: ${e.response?.statusCode}');
+      throw _handleDioException(e);
+    } catch (e) {
+      print('Generic exception in uploadApplicationDocument: $e');
+      rethrow;
+    }
+  }
+
+  // View Document
+  Future<String> viewDocument({
+    required String token,
+    required String documentId,
+  }) async {
+    try {
+      print('ApiService.viewDocument called');
+      print('Document ID: $documentId');
+      
+      final resp = await _dio.get(
+        '/loan/document/$documentId/view',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      
+      print('View document API response status: ${resp.statusCode}');
+      print('View document API response data: ${resp.data}');
+      return resp.data as String; // Returns the document URL or base64 string
+    } on DioException catch (e) {
+      print('DioException in viewDocument: ${e.message}');
+      print('DioException response: ${e.response?.data}');
+      throw _handleDioException(e);
+    } catch (e) {
+      print('Generic exception in viewDocument: $e');
+      rethrow;
+    }
+  }
+
+  // Download Document
+  Future<String> downloadDocument({
+    required String token,
+    required String documentId,
+  }) async {
+    try {
+      print('ApiService.downloadDocument called');
+      print('Document ID: $documentId');
+      
+      final resp = await _dio.get(
+        '/loan/document/$documentId/download',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      
+      print('Download document API response status: ${resp.statusCode}');
+      print('Download document API response data: ${resp.data}');
+      return resp.data as String; // Returns the download URL or file content
+    } on DioException catch (e) {
+      print('DioException in downloadDocument: ${e.message}');
+      print('DioException response: ${e.response?.data}');
+      throw _handleDioException(e);
+    } catch (e) {
+      print('Generic exception in downloadDocument: $e');
+      rethrow;
+    }
+  }
+
+  // Get Loan Details
+  Future<Map<String, dynamic>> getLoanDetails({
+    required String token,
+    required String loanId,
+  }) async {
+    try {
+      final resp = await _dio.get(
+        '/loan/details/$loanId',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  // Cancel Loan Application
+  Future<Map<String, dynamic>> cancelLoanApplication({
+    required String token,
+    required String applicationId,
+  }) async {
+    try {
+      final resp = await _dio.put(
+        '/loan/application/$applicationId/cancel',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  // Process Loan Payment
+  Future<Map<String, dynamic>> processLoanPayment({
+    required String token,
+    required String loanId,
+    required double paymentAmount,
+    required String paymentMethod,
+    required String paymentReference,
+  }) async {
+    try {
+      final resp = await _dio.post(
+        '/loan/payment',
+        data: {
+          'loan_id': loanId,
+          'payment_amount': paymentAmount,
+          'payment_method': paymentMethod,
+          'payment_reference': paymentReference,
         },
         options: Options(headers: {
           'Authorization': 'Bearer $token',

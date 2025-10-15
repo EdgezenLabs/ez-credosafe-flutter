@@ -89,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
       
       // Navigate based on authentication status
       if (authProvider.isLoggedIn) {
-        Navigator.pushReplacementNamed(context, '/loans');
+        Navigator.pushReplacementNamed(context, '/loan-dashboard');
       } else {
         Navigator.pushReplacementNamed(context, '/login');
       }

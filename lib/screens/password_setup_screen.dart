@@ -68,7 +68,7 @@ class _PasswordSetupScreenState extends State<PasswordSetupScreen> {
       
       if (mounted) {
         // Navigate to loans screen on successful password setup
-        Navigator.of(context).pushReplacementNamed('/loans');
+        Navigator.of(context).pushReplacementNamed('/loan-dashboard');
       }
     } catch (e) {
       AppLogger.error('Password setup failed', e);

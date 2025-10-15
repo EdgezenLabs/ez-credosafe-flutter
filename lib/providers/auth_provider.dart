@@ -21,6 +21,11 @@ class AuthProvider extends ChangeNotifier {
   User? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  
+  // Role-based access control
+  bool get isCustomer => _user?.role == 'customer';
+  bool get hasLoanAccess => isCustomer; // Only customers have loan access
+  String get displayName => _user?.name ?? 'User';
 
   void _setLoading(bool loading) {
     _isLoading = loading;
