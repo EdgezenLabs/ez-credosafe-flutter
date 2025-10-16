@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/constants.dart';
 import '../models/loan_status.dart';
 import '../providers/loan_status_provider.dart';
 import '../providers/auth_provider.dart';
 import 'personal_loan_application_screen.dart';
+import '../widgets/common/gradient_button.dart';
 
 class LoanTypeSelectionScreen extends StatefulWidget {
   const LoanTypeSelectionScreen({Key? key}) : super(key: key);
@@ -66,10 +66,10 @@ class _LoanTypeSelectionScreenState extends State<LoanTypeSelectionScreen> {
                       Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         'Error loading loan types',
                         style: TextStyle(
                           color: Colors.white,
@@ -81,26 +81,20 @@ class _LoanTypeSelectionScreenState extends State<LoanTypeSelectionScreen> {
                       Text(
                         loanProvider.error!,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 14,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton(
+                      GradientButton(
                         onPressed: () {
                           final authProvider = context.read<AuthProvider>();
                           loanProvider.refreshLoanStatus(authProvider);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppConstants.primaryText,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text('Retry'),
+                        text: 'Retry',
+                        icon: Icons.refresh,
+                        isCompact: true,
                       ),
                     ],
                   ),
@@ -161,9 +155,9 @@ class _LoanTypeSelectionScreenState extends State<LoanTypeSelectionScreen> {
                           width: 50,
                           height: 50,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
+                            color: Colors.white.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(25),
-                            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
                           ),
                           child: const ClipOval(
                             child: Icon(
@@ -182,7 +176,7 @@ class _LoanTypeSelectionScreenState extends State<LoanTypeSelectionScreen> {
                               Text(
                                 'Welcome Back',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                   fontSize: 14,
                                   fontFamily: 'Poppins',
                                 ),
@@ -209,7 +203,7 @@ class _LoanTypeSelectionScreenState extends State<LoanTypeSelectionScreen> {
                           width: 45,
                           height: 45,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: IconButton(
@@ -241,7 +235,7 @@ class _LoanTypeSelectionScreenState extends State<LoanTypeSelectionScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, -2),
                           ),
@@ -347,7 +341,7 @@ class _LoanTypeSelectionScreenState extends State<LoanTypeSelectionScreen> {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),

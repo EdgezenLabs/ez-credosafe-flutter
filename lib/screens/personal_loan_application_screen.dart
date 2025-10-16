@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../providers/auth_provider.dart';
@@ -88,7 +89,7 @@ class _PersonalLoanApplicationScreenState extends State<PersonalLoanApplicationS
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, -2),
                       ),
@@ -289,7 +290,7 @@ class _PersonalLoanApplicationScreenState extends State<PersonalLoanApplicationS
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -339,9 +340,9 @@ class _PersonalLoanApplicationScreenState extends State<PersonalLoanApplicationS
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
             ),
             child: const ClipOval(
               child: Icon(
@@ -360,7 +361,7 @@ class _PersonalLoanApplicationScreenState extends State<PersonalLoanApplicationS
                 Text(
                   'Welcome Back',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
                     fontFamily: 'Poppins',
                   ),
@@ -389,7 +390,7 @@ class _PersonalLoanApplicationScreenState extends State<PersonalLoanApplicationS
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Center(
@@ -550,8 +551,8 @@ class _PersonalLoanApplicationScreenState extends State<PersonalLoanApplicationS
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
@@ -586,28 +587,28 @@ class _PersonalLoanApplicationScreenState extends State<PersonalLoanApplicationS
   }
 
   Future<void> _pickFile(String type) async {
-    print('_pickFile called with type: $type'); // Debug
+    AppLogger.debug('_pickFile called with type: $type'); // Debug
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
       );
 
-      print('File picker result: ${result != null ? "Got result" : "Null result"}'); // Debug
+      AppLogger.debug('File picker result: ${result != null ? "Got result" : "Null result"}'); // Debug
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        print('Selected file: ${file.name}'); // Debug
-        print('File size: ${file.size} bytes'); // Debug
-        print('Has bytes: ${file.bytes != null}'); // Debug
+        AppLogger.debug('Selected file: ${file.name}'); // Debug
+        AppLogger.debug('File size: ${file.size} bytes'); // Debug
+        AppLogger.debug('Has bytes: ${file.bytes != null}'); // Debug
         
         setState(() {
           if (type == 'aadhaar') {
             aadhaarFile = file;
-            print('Aadhaar file stored successfully'); // Debug
+            AppLogger.debug('Aadhaar file stored successfully'); // Debug
           } else if (type == 'pan') {
             panFile = file;
-            print('PAN file stored successfully'); // Debug
+            AppLogger.debug('PAN file stored successfully'); // Debug
           }
         });
         
@@ -617,14 +618,14 @@ class _PersonalLoanApplicationScreenState extends State<PersonalLoanApplicationS
           );
         }
       } else {
-        print('No file selected or result is empty'); // Debug
+        AppLogger.debug('No file selected or result is empty'); // Debug
       }
     } catch (e, stackTrace) {
-      print('Error picking file: $e'); // Debug
-      print('Stack trace: $stackTrace'); // Debug
+      AppLogger.debug('Error picking file: $e'); // Debug
+      AppLogger.debug('Stack trace: $stackTrace'); // Debug
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting file. Please try again.')),
+          const SnackBar(content: Text('Error selecting file. Please try again.')),
         );
       }
     }

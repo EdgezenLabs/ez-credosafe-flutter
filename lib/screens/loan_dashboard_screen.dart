@@ -27,7 +27,7 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: AppConstants.goldenGradient,
         ),
         child: SafeArea(
@@ -49,10 +49,10 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                       Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         'Error loading loan details',
                         style: TextStyle(
                           color: Colors.white,
@@ -64,7 +64,7 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                       Text(
                         loanProvider.error!,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 14,
                         ),
                         textAlign: TextAlign.center,
@@ -112,7 +112,7 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        const Text(
                           'Loan Dashboard',
                           style: TextStyle(
                             color: Colors.white,
@@ -145,7 +145,7 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -156,7 +156,7 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                         children: [
                           Text(
                             loanDetails.loanType,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: AppConstants.primaryText,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -167,7 +167,7 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                           Text(
                             'Loan ID: ${loanDetails.loanId}',
                             style: TextStyle(
-                              color: AppConstants.primaryText.withOpacity(0.7),
+                              color: AppConstants.primaryText.withValues(alpha: 0.7),
                               fontSize: 14,
                               fontFamily: 'Poppins',
                             ),
@@ -181,14 +181,14 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                               Text(
                                 'Loan Amount',
                                 style: TextStyle(
-                                  color: AppConstants.primaryText.withOpacity(0.7),
+                                  color: AppConstants.primaryText.withValues(alpha: 0.7),
                                   fontSize: 14,
                                   fontFamily: 'Poppins',
                                 ),
                               ),
                               Text(
                                 '₹${loanDetails.loanAmount.toStringAsFixed(0)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppConstants.primaryText,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -206,14 +206,14 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                               Text(
                                 'Outstanding',
                                 style: TextStyle(
-                                  color: AppConstants.primaryText.withOpacity(0.7),
+                                  color: AppConstants.primaryText.withValues(alpha: 0.7),
                                   fontSize: 14,
                                   fontFamily: 'Poppins',
                                 ),
                               ),
                               Text(
                                 '₹${loanDetails.outstandingAmount.toStringAsFixed(0)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppConstants.primaryText,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -231,14 +231,14 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                               Text(
                                 'Monthly EMI',
                                 style: TextStyle(
-                                  color: AppConstants.primaryText.withOpacity(0.7),
+                                  color: AppConstants.primaryText.withValues(alpha: 0.7),
                                   fontSize: 14,
                                   fontFamily: 'Poppins',
                                 ),
                               ),
                               Text(
                                 '₹${loanDetails.monthlyEmi.toStringAsFixed(0)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppConstants.primaryText,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -256,14 +256,14 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                               Text(
                                 'Next Due Date',
                                 style: TextStyle(
-                                  color: AppConstants.primaryText.withOpacity(0.7),
+                                  color: AppConstants.primaryText.withValues(alpha: 0.7),
                                   fontSize: 14,
                                   fontFamily: 'Poppins',
                                 ),
                               ),
                               Text(
                                 loanDetails.nextDueDate,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AppConstants.primaryText,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -334,7 +334,7 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
                               _showLoanDetailsDialog(context, loanDetails);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white.withOpacity(0.2),
+                              backgroundColor: Colors.white.withValues(alpha: 0.2),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -487,6 +487,7 @@ class _LoanDashboardScreenState extends State<LoanDashboardScreen> {
       paymentMethod: 'online', // You can add payment method selection
       authProvider: authProvider,
     ).then((result) {
+      if (!mounted) return;
       if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Payment successful!')),

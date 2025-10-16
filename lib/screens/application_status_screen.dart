@@ -28,7 +28,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: AppConstants.goldenGradient,
         ),
         child: SafeArea(
@@ -50,10 +50,10 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
                       Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         'Error loading application status',
                         style: TextStyle(
                           color: Colors.white,
@@ -65,7 +65,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
                       Text(
                         loanProvider.error!,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 14,
                         ),
                         textAlign: TextAlign.center,
@@ -113,7 +113,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        const Text(
                           'My Applications',
                           style: TextStyle(
                             color: Colors.white,
@@ -141,7 +141,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
                     Text(
                       '${pendingApplications.length} ${pendingApplications.length == 1 ? "Application" : "Applications"}',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 16,
                         fontFamily: 'Poppins',
                       ),
@@ -165,7 +165,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
                           loanProvider.refreshLoanStatus(authProvider);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.2),
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -219,7 +219,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -235,7 +235,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
               Expanded(
                 child: Text(
                   application.loanType,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppConstants.primaryText,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -245,8 +245,8 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
               ),
               Text(
                 '₹${application.requestedAmount.toStringAsFixed(0)}',
-                style: TextStyle(
-                  color: const Color(0xFFDAB360),
+                style: const TextStyle(
+                  color: Color(0xFFDAB360),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Poppins',
@@ -260,7 +260,7 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
           Text(
             'ID: ${application.applicationId.substring(0, 8)}...',
             style: TextStyle(
-              color: AppConstants.primaryText.withOpacity(0.6),
+              color: AppConstants.primaryText.withValues(alpha: 0.6),
               fontSize: 12,
               fontFamily: 'Poppins',
             ),
@@ -273,13 +273,13 @@ class _ApplicationStatusScreenState extends State<ApplicationStatusScreen> {
               Icon(
                 Icons.calendar_today,
                 size: 14,
-                color: AppConstants.primaryText.withOpacity(0.6),
+                color: AppConstants.primaryText.withValues(alpha: 0.6),
               ),
               const SizedBox(width: 6),
               Text(
                 'Applied on ${application.applicationDate ?? application.submittedDate}',
                 style: TextStyle(
-                  color: AppConstants.primaryText.withOpacity(0.6),
+                  color: AppConstants.primaryText.withValues(alpha: 0.6),
                   fontSize: 13,
                   fontFamily: 'Poppins',
                 ),

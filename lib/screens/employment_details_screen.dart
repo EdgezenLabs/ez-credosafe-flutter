@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../providers/auth_provider.dart';
@@ -104,7 +105,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, -2),
                       ),
@@ -196,7 +197,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             elevation: 0,
-                            disabledBackgroundColor: const Color(0xFFB8935E).withOpacity(0.5),
+                            disabledBackgroundColor: const Color(0xFFB8935E).withValues(alpha: 0.5),
                           ),
                           child: isSubmitting
                               ? const SizedBox(
@@ -239,9 +240,9 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
             ),
             child: const ClipOval(
               child: Icon(
@@ -260,7 +261,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
                 Text(
                   'Welcome Back',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
                     fontFamily: 'Poppins',
                   ),
@@ -289,7 +290,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Center(
@@ -339,16 +340,16 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
   }
 
   void _handleProceed() async {
-    print('_handleProceed called'); // Debug
+    AppLogger.debug('_handleProceed called'); // Debug
     if (selectedStatus == null) {
-      print('No employment status selected'); // Debug
+      AppLogger.debug('No employment status selected'); // Debug
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select your employment status')),
       );
       return;
     }
 
-    print('Employment status selected: $selectedStatus'); // Debug
+    AppLogger.debug('Employment status selected: $selectedStatus'); // Debug
     setState(() {
       isSubmitting = true;
     });
@@ -359,7 +360,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
 
       // Get token from auth provider
       final token = authProvider.token;
-      print('Token: ${token != null ? "Available" : "Null"}'); // Debug
+      AppLogger.debug('Token: ${token != null ? "Available" : "Null"}'); // Debug
       if (token == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -372,12 +373,12 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
         return;
       }
 
-      print('Calling applyForLoan API...'); // Debug
-      print('Selected status: $selectedStatus'); // Debug
+      AppLogger.debug('Calling applyForLoan API...'); // Debug
+      AppLogger.debug('Selected status: $selectedStatus'); // Debug
       
       // Map employment type to API value
       final apiEmploymentType = _mapEmploymentTypeToApi(selectedStatus!);
-      print('Mapped employment type: $apiEmploymentType'); // Debug
+      AppLogger.debug('Mapped employment type: $apiEmploymentType'); // Debug
       
       // Apply for loan
       final success = await loanProvider.applyForLoan(
@@ -390,9 +391,9 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
         existingEmis: 0,
       );
 
-      print('applyForLoan result: $success'); // Debug
+      AppLogger.debug('applyForLoan result: $success'); // Debug
       if (!success || loanProvider.error != null) {
-        print('applyForLoan error: ${loanProvider.error}'); // Debug
+        AppLogger.debug('applyForLoan error: ${loanProvider.error}'); // Debug
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error: ${loanProvider.error}')),
@@ -406,7 +407,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
 
       // Get application ID from the response
       final applicationId = loanProvider.currentApplicationId;
-      print('Application ID: $applicationId'); // Debug
+      AppLogger.debug('Application ID: $applicationId'); // Debug
       if (applicationId == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -421,7 +422,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
 
       // Upload Aadhaar document if provided
       if (widget.aadhaarFile != null) {
-        print('Uploading Aadhaar document...'); // Debug
+        AppLogger.debug('Uploading Aadhaar document...'); // Debug
         final aadhaarSuccess = await loanProvider.uploadDocument(
           token: token,
           applicationId: applicationId,
@@ -429,9 +430,9 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
           file: widget.aadhaarFile!,
         );
 
-        print('Aadhaar upload result: $aadhaarSuccess'); // Debug
+        AppLogger.debug('Aadhaar upload result: $aadhaarSuccess'); // Debug
         if (!aadhaarSuccess || loanProvider.error != null) {
-          print('Aadhaar upload error: ${loanProvider.error}'); // Debug
+          AppLogger.debug('Aadhaar upload error: ${loanProvider.error}'); // Debug
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Error uploading Aadhaar: ${loanProvider.error}')),
@@ -443,12 +444,12 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
           return;
         }
       } else {
-        print('No Aadhaar file to upload, skipping...'); // Debug
+        AppLogger.debug('No Aadhaar file to upload, skipping...'); // Debug
       }
 
       // Upload PAN document if provided
       if (widget.panFile != null) {
-        print('Uploading PAN document...'); // Debug
+        AppLogger.debug('Uploading PAN document...'); // Debug
         final panSuccess = await loanProvider.uploadDocument(
           token: token,
           applicationId: applicationId,
@@ -456,9 +457,9 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
           file: widget.panFile!,
         );
 
-        print('PAN upload result: $panSuccess'); // Debug
+        AppLogger.debug('PAN upload result: $panSuccess'); // Debug
         if (!panSuccess || loanProvider.error != null) {
-          print('PAN upload error: ${loanProvider.error}'); // Debug
+          AppLogger.debug('PAN upload error: ${loanProvider.error}'); // Debug
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Error uploading PAN: ${loanProvider.error}')),
@@ -470,14 +471,14 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
           return;
         }
       } else {
-        print('No PAN file to upload, skipping...'); // Debug
+        AppLogger.debug('No PAN file to upload, skipping...'); // Debug
       }
 
       setState(() {
         isSubmitting = false;
       });
 
-      print('All operations successful, navigating to success screen'); // Debug
+      AppLogger.debug('All operations successful, navigating to success screen'); // Debug
       // Navigate to Success Screen only if everything succeeded
       if (mounted) {
         Navigator.push(
@@ -488,7 +489,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
         );
       }
     } catch (e) {
-      print('Exception in _handleProceed: $e'); // Debug
+      AppLogger.debug('Exception in _handleProceed: $e'); // Debug
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
