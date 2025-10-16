@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/logger.dart';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -10,6 +11,7 @@ import '../providers/auth_provider.dart';
 import '../widgets/common/gradient_button.dart';
 import 'loan_type_selection_screen.dart';
 import 'package:web/web.dart' as web;
+import 'dart:js_interop' as js_interop;
 
 class LoanStatusScreen extends StatefulWidget {
   const LoanStatusScreen({Key? key}) : super(key: key);
@@ -1232,7 +1234,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         return;
       }
 
-      final url = await loanProvider.viewDocument(
+      final pdfData = await loanProvider.viewDocument(
         token: token,
         documentId: documentId,
       );
@@ -1242,9 +1244,9 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
 
       Navigator.of(stateContext).pop(); // Close loading
 
-      if (url != null) {
-        // Open URL in browser or show in web view
-        await _openUrl(url);
+      if (pdfData != null) {
+        // Open PDF data as blob URL in browser
+        await _openPdfData(pdfData, 'document_$documentId.pdf');
       } else {
         ScaffoldMessenger.of(stateContext).showSnackBar(
           SnackBar(
@@ -1314,7 +1316,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         return;
       }
 
-      final url = await loanProvider.downloadDocument(
+      final pdfData = await loanProvider.downloadDocument(
         token: token,
         documentId: documentId,
       );
@@ -1324,9 +1326,9 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
 
       Navigator.of(stateContext).pop(); // Close loading
 
-      if (url != null) {
-        // Open download URL
-        await _openUrl(url);
+      if (pdfData != null) {
+        // Open PDF data for download
+        await _openPdfData(pdfData, fileName);
         
         if (!mounted) return;
         if (!stateContext.mounted) return;
@@ -1370,16 +1372,29 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
     }
   }
 
-  Future<void> _openUrl(String url) async {
-    // For web, we can use html package or window.open
-    // For mobile, we can use url_launcher package
+  Future<void> _openPdfData(Uint8List pdfData, String fileName) async {
     if (kIsWeb) {
-      // Use JavaScript to open URL in new tab
-      web.window.open(url, '_blank');
+      try {
+        // Create a Blob from the PDF data using JS interop
+        final jsArray = js_interop.JSArray<js_interop.JSAny>();
+        jsArray.toDart.add(pdfData.toJS);
+        final blob = web.Blob(jsArray, web.BlobPropertyBag(type: 'application/pdf'));
+        // Create object URL from blob
+        final url = web.URL.createObjectURL(blob);
+        AppLogger.debug('Created blob URL: $url');
+        // Open in new tab
+        web.window.open(url, '_blank');
+        // Clean up the blob URL after a delay
+        Future.delayed(const Duration(seconds: 5), () {
+          web.URL.revokeObjectURL(url);
+        });
+      } catch (e) {
+        AppLogger.error('Error creating blob URL: $e');
+        rethrow;
+      }
     } else {
-      // For mobile, you would use url_launcher
-      // await launchUrl(Uri.parse(url));
-      AppLogger.debug('Open URL on mobile: $url');
+      // For mobile, save to file and open
+      AppLogger.debug('Open PDF on mobile: $fileName');
     }
   }
 

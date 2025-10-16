@@ -6,6 +6,7 @@ import '../config/constants.dart';
 import '../models/loan_status.dart';
 import '../services/api_service.dart';
 import '../utils/logger.dart';
+import 'dart:typed_data';
 import 'auth_provider.dart';
 
 class LoanStatusProvider extends ChangeNotifier {
@@ -171,21 +172,19 @@ class LoanStatusProvider extends ChangeNotifier {
     }
   }
 
-  Future<String?> viewDocument({
+  Future<Uint8List?> viewDocument({
     required String token,
     required String documentId,
   }) async {
     try {
       AppLogger.debug('LoanStatusProvider.viewDocument called');
       AppLogger.debug('Document ID: $documentId');
-      
-      final url = await apiService.viewDocument(
+      final data = await apiService.viewDocument(
         token: token,
         documentId: documentId,
       );
-      
-      AppLogger.info('View document successful, URL: $url');
-      return url;
+      AppLogger.info('View document successful, bytes: \\${data?.length}');
+      return data;
     } catch (e) {
       AppLogger.error('Exception in LoanStatusProvider.viewDocument: $e');
       _error = e.toString();
@@ -194,21 +193,19 @@ class LoanStatusProvider extends ChangeNotifier {
     }
   }
 
-  Future<String?> downloadDocument({
+  Future<Uint8List?> downloadDocument({
     required String token,
     required String documentId,
   }) async {
     try {
       AppLogger.debug('LoanStatusProvider.downloadDocument called');
       AppLogger.debug('Document ID: $documentId');
-      
-      final url = await apiService.downloadDocument(
+      final data = await apiService.downloadDocument(
         token: token,
         documentId: documentId,
       );
-      
-      AppLogger.info('Download document successful, URL: $url');
-      return url;
+      AppLogger.info('Download document successful, bytes: \\${data?.length}');
+      return data;
     } catch (e) {
       AppLogger.error('Exception in LoanStatusProvider.downloadDocument: $e');
       _error = e.toString();

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -245,26 +246,25 @@ class ApiService {
   }
 
   // View Document
-  Future<String> viewDocument({
+  Future<Uint8List?> viewDocument({
     required String token,
     required String documentId,
   }) async {
     try {
       AppLogger.debug('ApiService.viewDocument called');
       AppLogger.debug('Document ID: $documentId');
-      
       final resp = await _dio.get(
         '/loan/document/$documentId/view',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
+          responseType: ResponseType.bytes,
         ),
       );
-      
       AppLogger.debug('View document API response status: ${resp.statusCode}');
-      AppLogger.debug('View document API response data: ${resp.data}');
-      return resp.data as String; // Returns the document URL or base64 string
+      AppLogger.debug('View document API response data: ${resp.data.runtimeType}');
+      return resp.data as Uint8List;
     } on DioException catch (e) {
       AppLogger.debug('DioException in viewDocument: ${e.message}');
       AppLogger.debug('DioException response: ${e.response?.data}');
@@ -276,26 +276,25 @@ class ApiService {
   }
 
   // Download Document
-  Future<String> downloadDocument({
+  Future<Uint8List?> downloadDocument({
     required String token,
     required String documentId,
   }) async {
     try {
       AppLogger.debug('ApiService.downloadDocument called');
       AppLogger.debug('Document ID: $documentId');
-      
       final resp = await _dio.get(
         '/loan/document/$documentId/download',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
+          responseType: ResponseType.bytes,
         ),
       );
-      
       AppLogger.debug('Download document API response status: ${resp.statusCode}');
-      AppLogger.debug('Download document API response data: ${resp.data}');
-      return resp.data as String; // Returns the download URL or file content
+      AppLogger.debug('Download document API response data: ${resp.data.runtimeType}');
+      return resp.data as Uint8List;
     } on DioException catch (e) {
       AppLogger.debug('DioException in downloadDocument: ${e.message}');
       AppLogger.debug('DioException response: ${e.response?.data}');
