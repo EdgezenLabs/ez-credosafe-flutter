@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/logger.dart';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -6,8 +8,10 @@ import '../config/constants.dart';
 import '../models/loan_status.dart';
 import '../providers/loan_status_provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/common/gradient_button.dart';
 import 'loan_type_selection_screen.dart';
-import 'dart:html' as html show window;
+import 'package:web/web.dart' as web;
+import 'dart:js_interop' as js_interop;
 
 class LoanStatusScreen extends StatefulWidget {
   const LoanStatusScreen({Key? key}) : super(key: key);
@@ -62,10 +66,10 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
                       Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         'Error loading loan status',
                         style: TextStyle(
                           color: Colors.white,
@@ -77,26 +81,19 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
                       Text(
                         loanProvider.error!,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 14,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton(
+                      GradientButton(
                         onPressed: () {
                           final authProvider = context.read<AuthProvider>();
                           loanProvider.refreshLoanStatus(authProvider);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppConstants.primaryText,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text('Retry'),
+                        text: 'Retry',
+                        icon: Icons.refresh,
                       ),
                     ],
                   ),
@@ -134,7 +131,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, -2),
                           ),
@@ -191,20 +188,27 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
       ),
       // Bottom Navigation Bar
       bottomNavigationBar: _buildBottomNavigationBar(context),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LoanTypeSelectionScreen(),
-            ),
-          );
-        },
-        backgroundColor: const Color(0xFFDAB360),
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 28,
+      floatingActionButton: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.goldenGradient,
+          shape: BoxShape.circle,
+        ),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LoanTypeSelectionScreen(),
+              ),
+            );
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+            size: 28,
+          ),
         ),
       ),
     );
@@ -220,9 +224,9 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
             ),
             child: const ClipOval(
               child: Icon(
@@ -241,7 +245,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
                 Text(
                   'Welcome Back',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 14,
                     fontFamily: 'Poppins',
                   ),
@@ -270,7 +274,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Center(
@@ -289,8 +293,15 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
 
   Widget _buildProgressCard(PendingApplication application) {
     final progressSteps = application.progressSteps ?? ['Applied', 'Documents', 'Verification', 'Approval'];
-    final currentStep = application.currentStep ?? 1;
     final documents = application.documents ?? [];
+    
+    // Calculate actual current step based on documents
+    int currentStep = application.currentStep ?? 1;
+    
+    // If documents are uploaded, ensure we're at least at step 2 (Documents completed)
+    if (documents.isNotEmpty && currentStep < 2) {
+      currentStep = 2;
+    }
     
     return Container(
       width: double.infinity,
@@ -305,95 +316,407 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Progress header text
+          // Application Header
+          _buildApplicationHeader(application),
+          const SizedBox(height: 30),
+
+          // Section 1: Progress Tracker
+          _buildProgressSection(progressSteps, currentStep),
+          const SizedBox(height: 30),
+
+          // Section 2: Application Documents
+          _buildDocumentsSection(application.applicationId, documents),
+          const SizedBox(height: 30),
+
+          // Section 3: Loan Acceptance / Status
+          _buildLoanAcceptanceSection(application),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApplicationHeader(PendingApplication application) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: AppColors.goldenGradient,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                application.loanType.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  fontFamily: 'Poppins',
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            const Spacer(),
+            Icon(
+              Icons.access_time,
+              size: 16,
+              color: Colors.grey[600],
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Application ID: ${application.applicationId.substring(0, 8)}...',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[600],
+                fontFamily: 'Poppins',
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressSection(List<String> progressSteps, int currentStep) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.border,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: AppColors.goldenGradient,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.trending_up,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Application Progress',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildProgressIndicator(progressSteps, currentStep),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentsSection(String applicationId, List<LoanDocument> documents) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.border,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: AppColors.goldenGradient,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.description,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
                 child: Text(
-                  'Your loan program progress: ${application.loanType}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF666666),
+                  'Application Documents',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
                     fontFamily: 'Poppins',
                   ),
                 ),
               ),
-              // Document upload icon
               IconButton(
                 onPressed: () {
-                  _showDocumentUploadDialog(context, application.applicationId);
+                  _showDocumentUploadDialog(context, applicationId);
                 },
                 icon: const Icon(
-                  Icons.upload_file,
-                  color: Color(0xFFDAB360),
+                  Icons.add_circle_outline,
+                  color: AppColors.primary,
                   size: 28,
                 ),
                 tooltip: 'Upload Documents',
               ),
             ],
           ),
-          const SizedBox(height: 24),
-
-          // Progress Indicator
-          _buildProgressIndicator(progressSteps, currentStep),
-          
-          const SizedBox(height: 30),
-
-          // Documents Section (if any documents exist)
-          if (documents.isNotEmpty) ...[
-            const Text(
-              'Uploaded Documents:',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF333333),
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 12),
-            ...documents.map((doc) => _buildDocumentTile(doc)),
-            const SizedBox(height: 20),
-          ],
-
-          // Info text
-          const Text(
-            'If you want to do re-apply or edit your data, you can do it',
-            style: TextStyle(
-              fontSize: 12,
-              color: Color(0xFF999999),
-              fontFamily: 'Poppins',
-            ),
-          ),
           const SizedBox(height: 16),
-
-          // Cancel Application Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                _showCancelDialog(context, application.applicationId);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB8935E),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          
+          if (documents.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.orange.withValues(alpha: 0.3),
+                  width: 1,
                 ),
-                elevation: 0,
               ),
-              child: const Text(
-                'Cancel Application',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.orange[700],
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'No documents uploaded yet. Please upload required documents to proceed.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.orange[900],
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green[700],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${documents.length} document(s) uploaded',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.green[900],
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...documents.map((doc) => _buildDocumentTile(doc)),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoanAcceptanceSection(PendingApplication application) {
+    final status = application.status.toLowerCase();
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundLight,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.border,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: AppColors.goldenGradient,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.approval,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Loan Acceptance',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
                   fontFamily: 'Poppins',
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Status Badge
+          _buildStatusBadge(status),
+          const SizedBox(height: 16),
+          
+          // Status Description
+          _buildStatusDescription(status),
+          const SizedBox(height: 20),
+          
+          // Actions
+          if (status == 'pending' || status == 'under review')
+            Column(
+              children: [
+                const Divider(),
+                const SizedBox(height: 16),
+                Text(
+                  'Need to make changes?',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GradientButton(
+                  onPressed: () {
+                    _showCancelDialog(context, application.applicationId);
+                  },
+                  text: 'Cancel Application',
+                  icon: Icons.cancel_outlined,
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color badgeColor;
+    IconData badgeIcon;
+    String displayText;
+    
+    switch (status) {
+      case 'approved':
+        badgeColor = Colors.green;
+        badgeIcon = Icons.check_circle;
+        displayText = 'APPROVED';
+        break;
+      case 'rejected':
+        badgeColor = Colors.red;
+        badgeIcon = Icons.cancel;
+        displayText = 'REJECTED';
+        break;
+      case 'under review':
+        badgeColor = Colors.blue;
+        badgeIcon = Icons.rate_review;
+        displayText = 'UNDER REVIEW';
+        break;
+      default:
+        badgeColor = Colors.orange;
+        badgeIcon = Icons.pending;
+        displayText = 'PENDING';
+    }
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: badgeColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            badgeIcon,
+            color: badgeColor,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            displayText,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: badgeColor,
+              fontFamily: 'Poppins',
+              letterSpacing: 0.5,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusDescription(String status) {
+    String description;
+    
+    switch (status) {
+      case 'approved':
+        description = 'Congratulations! Your loan application has been approved. You will receive further instructions via email.';
+        break;
+      case 'rejected':
+        description = 'Unfortunately, your loan application has been rejected. Please contact support for more information.';
+        break;
+      case 'under review':
+        description = 'Your application is currently being reviewed by our team. We will notify you once the review is complete.';
+        break;
+      default:
+        description = 'Your application is pending. Please ensure all required documents are uploaded for faster processing.';
+    }
+    
+    return Text(
+      description,
+      style: const TextStyle(
+        fontSize: 13,
+        color: AppColors.textSecondary,
+        fontFamily: 'Poppins',
+        height: 1.5,
       ),
     );
   }
@@ -475,7 +798,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         color: const Color(0xFF2C2C2C),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -730,7 +1053,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFFDAB360).withOpacity(0.1),
+              color: const Color(0xFFDAB360).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
@@ -775,7 +1098,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
             },
             icon: const Icon(
               Icons.visibility,
-              color: Color(0xFFDAB360),
+              color: AppColors.primary,
               size: 20,
             ),
             tooltip: 'View Document',
@@ -834,12 +1157,12 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
                 Navigator.of(dialogContext).pop();
                 _handleViewDocument(doc.documentId);
               },
-              icon: const Icon(Icons.visibility, color: Color(0xFFDAB360)),
+              icon: const Icon(Icons.visibility, color: AppColors.primary),
               label: const Text(
                 'View',
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  color: Color(0xFFDAB360),
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -848,12 +1171,12 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
                 Navigator.of(dialogContext).pop();
                 _handleDownloadDocument(doc.documentId, doc.fileName);
               },
-              icon: const Icon(Icons.download, color: Color(0xFFDAB360)),
+              icon: const Icon(Icons.download, color: AppColors.primary),
               label: const Text(
                 'Download',
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  color: Color(0xFFDAB360),
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -897,33 +1220,33 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
       final token = authProvider.token;
 
       if (token == null) {
-        if (mounted) {
-          Navigator.of(stateContext).pop();
-          ScaffoldMessenger.of(stateContext).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Authentication error. Please login again.',
-                style: TextStyle(fontFamily: 'Poppins'),
-              ),
-              backgroundColor: Colors.red,
+        if (!mounted) return;
+        Navigator.of(stateContext).pop();
+        ScaffoldMessenger.of(stateContext).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Authentication error. Please login again.',
+              style: TextStyle(fontFamily: 'Poppins'),
             ),
-          );
-        }
+            backgroundColor: Colors.red,
+          ),
+        );
         return;
       }
 
-      final url = await loanProvider.viewDocument(
+      final pdfData = await loanProvider.viewDocument(
         token: token,
         documentId: documentId,
       );
 
       if (!mounted) return;
+      if (!stateContext.mounted) return;
 
       Navigator.of(stateContext).pop(); // Close loading
 
-      if (url != null) {
-        // Open URL in browser or show in web view
-        await _openUrl(url);
+      if (pdfData != null) {
+        // Open PDF data as blob URL in browser
+        await _openPdfData(pdfData, 'document_$documentId.pdf');
       } else {
         ScaffoldMessenger.of(stateContext).showSnackBar(
           SnackBar(
@@ -936,21 +1259,21 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         );
       }
     } catch (e) {
-      print('Exception in _handleViewDocument: $e');
-      if (mounted) {
-        if (Navigator.canPop(stateContext)) {
-          Navigator.of(stateContext).pop();
-        }
-        ScaffoldMessenger.of(stateContext).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error viewing document: ${e.toString()}',
-              style: const TextStyle(fontFamily: 'Poppins'),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+      AppLogger.debug('Exception in _handleViewDocument: $e');
+      if (!mounted) return;
+      if (!stateContext.mounted) return;
+      if (Navigator.canPop(stateContext)) {
+        Navigator.of(stateContext).pop();
       }
+      ScaffoldMessenger.of(stateContext).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error viewing document: ${e.toString()}',
+            style: const TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -978,33 +1301,37 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
       final token = authProvider.token;
 
       if (token == null) {
-        if (mounted) {
-          Navigator.of(stateContext).pop();
-          ScaffoldMessenger.of(stateContext).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Authentication error. Please login again.',
-                style: TextStyle(fontFamily: 'Poppins'),
-              ),
-              backgroundColor: Colors.red,
+        if (!mounted) return;
+        if (!stateContext.mounted) return;
+        Navigator.of(stateContext).pop();
+        ScaffoldMessenger.of(stateContext).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Authentication error. Please login again.',
+              style: TextStyle(fontFamily: 'Poppins'),
             ),
-          );
-        }
+            backgroundColor: Colors.red,
+          ),
+        );
         return;
       }
 
-      final url = await loanProvider.downloadDocument(
+      final pdfData = await loanProvider.downloadDocument(
         token: token,
         documentId: documentId,
       );
 
       if (!mounted) return;
+      if (!stateContext.mounted) return;
 
       Navigator.of(stateContext).pop(); // Close loading
 
-      if (url != null) {
-        // Open download URL
-        await _openUrl(url);
+      if (pdfData != null) {
+        // Open PDF data for download
+        await _openPdfData(pdfData, fileName);
+        
+        if (!mounted) return;
+        if (!stateContext.mounted) return;
         
         ScaffoldMessenger.of(stateContext).showSnackBar(
           SnackBar(
@@ -1027,35 +1354,47 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         );
       }
     } catch (e) {
-      print('Exception in _handleDownloadDocument: $e');
-      if (mounted) {
-        if (Navigator.canPop(stateContext)) {
-          Navigator.of(stateContext).pop();
-        }
-        ScaffoldMessenger.of(stateContext).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error downloading document: ${e.toString()}',
-              style: const TextStyle(fontFamily: 'Poppins'),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+      AppLogger.debug('Exception in _handleDownloadDocument: $e');
+      if (!mounted) return;
+      if (!stateContext.mounted) return;
+      if (Navigator.canPop(stateContext)) {
+        Navigator.of(stateContext).pop();
       }
+      ScaffoldMessenger.of(stateContext).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error downloading document: ${e.toString()}',
+            style: const TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
-  Future<void> _openUrl(String url) async {
-    // For web, we can use html package or window.open
-    // For mobile, we can use url_launcher package
+  Future<void> _openPdfData(Uint8List pdfData, String fileName) async {
     if (kIsWeb) {
-      // Use JavaScript to open URL in new tab
-      // ignore: avoid_web_libraries_in_flutter
-      html.window.open(url, '_blank');
+      try {
+        // Create a Blob from the PDF data using JS interop
+        final jsArray = js_interop.JSArray<js_interop.JSAny>();
+        jsArray.toDart.add(pdfData.toJS);
+        final blob = web.Blob(jsArray, web.BlobPropertyBag(type: 'application/pdf'));
+        // Create object URL from blob
+        final url = web.URL.createObjectURL(blob);
+        AppLogger.debug('Created blob URL: $url');
+        // Open in new tab
+        web.window.open(url, '_blank');
+        // Clean up the blob URL after a delay
+        Future.delayed(const Duration(seconds: 5), () {
+          web.URL.revokeObjectURL(url);
+        });
+      } catch (e) {
+        AppLogger.error('Error creating blob URL: $e');
+        rethrow;
+      }
     } else {
-      // For mobile, you would use url_launcher
-      // await launchUrl(Uri.parse(url));
-      print('Open URL on mobile: $url');
+      // For mobile, save to file and open
+      AppLogger.debug('Open PDF on mobile: $fileName');
     }
   }
 
@@ -1144,7 +1483,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFFDAB360).withOpacity(0.1),
+                color: const Color(0xFFDAB360).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -1177,10 +1516,10 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
   }
 
   void _uploadDocument(BuildContext context, String applicationId, String documentType) async {
-    print('_uploadDocument called - NOT closing dialog yet');
+    AppLogger.debug('_uploadDocument called - NOT closing dialog yet');
     
     try {
-      print('Starting file picker for document type: $documentType');
+      AppLogger.debug('Starting file picker for document type: $documentType');
       
       // Pick file using file_picker
       FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -1189,11 +1528,11 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         withData: true, // Important for web
       );
 
-      print('File picker result: ${result?.files.length ?? 0} files selected');
+      AppLogger.debug('File picker result: ${result?.files.length ?? 0} files selected');
 
       if (result == null || result.files.isEmpty) {
         // User cancelled the picker
-        print('User cancelled file picker');
+        AppLogger.debug('User cancelled file picker');
         // Close the upload type selection dialog
         if (context.mounted) {
           Navigator.of(context).pop();
@@ -1202,11 +1541,11 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
       }
 
       final file = result.files.first;
-      print('Selected file: ${file.name}, size: ${file.size} bytes');
+      AppLogger.debug('Selected file: ${file.name}, size: ${file.size} bytes');
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        print('File size exceeds limit: ${file.size} bytes');
+        AppLogger.debug('File size exceeds limit: ${file.size} bytes');
         if (context.mounted) {
           Navigator.of(context).pop(); // Close upload type dialog
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1222,11 +1561,11 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         return;
       }
 
-      print('Context mounted check: ${context.mounted}');
+      AppLogger.debug('Context mounted check: ${context.mounted}');
       
       // Close the upload type selection dialog first
       if (context.mounted) {
-        print('Closing upload type dialog');
+        AppLogger.debug('Closing upload type dialog');
         Navigator.of(context).pop();
       }
       
@@ -1234,17 +1573,17 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
       await Future.delayed(const Duration(milliseconds: 100));
       
       // Show confirmation dialog with file preview
-      print('About to show confirmation dialog');
+      AppLogger.debug('About to show confirmation dialog');
       if (context.mounted) {
-        print('Context is mounted, calling _showFileConfirmationDialog');
+        AppLogger.debug('Context is mounted, calling _showFileConfirmationDialog');
         _showFileConfirmationDialog(context, applicationId, documentType, file);
       } else {
-        print('ERROR: Context is not mounted!');
+        AppLogger.debug('ERROR: Context is not mounted!');
       }
 
     } catch (e) {
-      print('Exception in _uploadDocument (file picking): $e');
-      print('Stack trace: ${StackTrace.current}');
+      AppLogger.debug('Exception in _uploadDocument (file picking): $e');
+      AppLogger.debug('Stack trace: ${StackTrace.current}');
       
       if (context.mounted) {
         Navigator.of(context).pop(); // Close upload type dialog
@@ -1267,13 +1606,13 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
     String documentType,
     PlatformFile file,
   ) {
-    print('_showFileConfirmationDialog called');
-    print('File: ${file.name}, Document Type: $documentType, App ID: $applicationId');
+    AppLogger.debug('_showFileConfirmationDialog called');
+    AppLogger.debug('File: ${file.name}, Document Type: $documentType, App ID: $applicationId');
     
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
-        print('Building confirmation dialog...');
+        AppLogger.debug('Building confirmation dialog...');
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -1359,7 +1698,7 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                print('Cancel button clicked');
+                AppLogger.debug('Cancel button clicked');
                 Navigator.of(dialogContext).pop();
               },
               child: const Text(
@@ -1370,29 +1709,18 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
                 ),
               ),
             ),
-            ElevatedButton(
+            GradientButton(
               onPressed: () {
-                print('Submit button clicked in confirmation dialog');
-                print('Closing confirmation dialog');
+                AppLogger.debug('Submit button clicked in confirmation dialog');
+                AppLogger.debug('Closing confirmation dialog');
                 Navigator.of(dialogContext).pop();
-                print('Calling _performUpload');
+                AppLogger.debug('Calling _performUpload');
                 // No need to pass context, _performUpload will use state's context
                 _performUpload(applicationId, documentType, file);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFDAB360),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Submit',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              text: 'Submit',
+              icon: Icons.upload_file,
+              isCompact: true,
             ),
           ],
         );
@@ -1405,27 +1733,29 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
     String documentType,
     PlatformFile file,
   ) async {
-    print('=== _performUpload CALLED ===');
-    print('Application ID: $applicationId');
-    print('Document Type: $documentType');
-    print('File: ${file.name}');
+    AppLogger.debug('=== _performUpload CALLED ===');
+    AppLogger.debug('Application ID: $applicationId');
+    AppLogger.debug('Document Type: $documentType');
+    AppLogger.debug('File: ${file.name}');
     
     // Add a small delay to allow dialog to close properly
     await Future.delayed(const Duration(milliseconds: 150));
     
     // Use widget's mounted property instead of context.mounted
-    print('After delay, widget mounted: $mounted');
+    AppLogger.debug('After delay, widget mounted: $mounted');
     
     if (!mounted) {
-      print('ERROR: Widget is not mounted in _performUpload after delay');
+      AppLogger.debug('ERROR: Widget is not mounted in _performUpload after delay');
       return;
     }
     
     // Use the state's context, not the dialog's context
     final stateContext = context;
     
+    if (!stateContext.mounted) return;
+    
     try {
-      print('Showing loading dialog');
+      AppLogger.debug('Showing loading dialog');
       // Show loading indicator
       showDialog(
         context: stateContext,
@@ -1444,27 +1774,27 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
       final loanProvider = stateContext.read<LoanStatusProvider>();
       final token = authProvider.token;
 
-      print('Token available: ${token != null}');
-      print('Application ID: $applicationId');
+      AppLogger.debug('Token available: ${token != null}');
+      AppLogger.debug('Application ID: $applicationId');
 
       if (token == null) {
-        print('Token is null, showing error');
-        if (mounted) {
-          Navigator.of(stateContext).pop(); // Close loading dialog
-          ScaffoldMessenger.of(stateContext).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Authentication error. Please login again.',
-                style: TextStyle(fontFamily: 'Poppins'),
-              ),
-              backgroundColor: Colors.red,
+        AppLogger.debug('Token is null, showing error');
+        if (!mounted) return;
+        if (!stateContext.mounted) return;
+        Navigator.of(stateContext).pop(); // Close loading dialog
+        ScaffoldMessenger.of(stateContext).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Authentication error. Please login again.',
+              style: TextStyle(fontFamily: 'Poppins'),
             ),
-          );
-        }
+            backgroundColor: Colors.red,
+          ),
+        );
         return;
       }
 
-      print('Calling uploadDocument API...');
+      AppLogger.debug('Calling uploadDocument API...');
       // Upload document using API service
       final uploadResult = await loanProvider.uploadDocument(
         token: token,
@@ -1473,16 +1803,17 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         file: file,
       );
 
-      print('Upload result: $uploadResult');
+      AppLogger.debug('Upload result: $uploadResult');
 
       if (!mounted) return;
+      if (!stateContext.mounted) return;
 
       // Close loading dialog
       Navigator.of(stateContext).pop();
-      print('Loading dialog closed');
+      AppLogger.debug('Loading dialog closed');
 
       if (uploadResult != null) {
-        print('Upload successful, showing success message');
+        AppLogger.debug('Upload successful, showing success message');
         // Show success message
         ScaffoldMessenger.of(stateContext).showSnackBar(
           SnackBar(
@@ -1495,11 +1826,11 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
         );
 
         // Refresh loan status to show new document
-        print('Refreshing loan status...');
+        AppLogger.debug('Refreshing loan status...');
         await loanProvider.fetchLoanStatus(authProvider, forceRefresh: true);
-        print('Loan status refreshed');
+        AppLogger.debug('Loan status refreshed');
       } else {
-        print('Upload failed, showing error message');
+        AppLogger.debug('Upload failed, showing error message');
         // Show error message
         ScaffoldMessenger.of(stateContext).showSnackBar(
           SnackBar(
@@ -1513,26 +1844,26 @@ class _LoanStatusScreenState extends State<LoanStatusScreen> {
       }
 
     } catch (e) {
-      print('Exception in _performUpload: $e');
-      print('Stack trace: ${StackTrace.current}');
+      AppLogger.debug('Exception in _performUpload: $e');
+      AppLogger.debug('Stack trace: ${StackTrace.current}');
       
-      if (mounted) {
-        // Close loading dialog if open
-        if (Navigator.canPop(stateContext)) {
-          Navigator.of(stateContext).pop();
-        }
-
-        // Show error message
-        ScaffoldMessenger.of(stateContext).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error uploading document: ${e.toString()}',
-              style: const TextStyle(fontFamily: 'Poppins'),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (!mounted) return;
+      if (!stateContext.mounted) return;
+      // Close loading dialog if open
+      if (Navigator.canPop(stateContext)) {
+        Navigator.of(stateContext).pop();
       }
+
+      // Show error message
+      ScaffoldMessenger.of(stateContext).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Error uploading document: ${e.toString()}',
+            style: const TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

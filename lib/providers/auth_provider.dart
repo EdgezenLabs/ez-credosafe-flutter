@@ -43,9 +43,73 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> loadFromStorage() async {
-    _token = await _storage.read(key: 'token');
-    // optionally read user info if stored
-    notifyListeners();
+    try {
+      _token = await _storage.read(key: 'token');
+      
+      // Load user data from storage
+      final userId = await _storage.read(key: 'user_id');
+      final userEmail = await _storage.read(key: 'user_email');
+      final userName = await _storage.read(key: 'user_name');
+      final userPhone = await _storage.read(key: 'user_phone');
+      final userRole = await _storage.read(key: 'user_role');
+      final userIsActive = await _storage.read(key: 'user_is_active');
+      final userTenantId = await _storage.read(key: 'user_tenant_id');
+      final userCreatedAt = await _storage.read(key: 'user_created_at');
+      
+      if (userId != null && userEmail != null && userName != null) {
+        _user = User(
+          id: userId,
+          email: userEmail,
+          name: userName,
+          phone: userPhone,
+          role: userRole ?? 'customer',
+          isActive: userIsActive == 'true',
+          tenantId: userTenantId,
+          createdAt: userCreatedAt ?? '',
+        );
+        AppLogger.info('User data loaded from storage: ${_user?.email}');
+      }
+      
+      if (_token != null) {
+        AppLogger.info('Token loaded from storage');
+      }
+      
+      notifyListeners();
+    } catch (e) {
+      AppLogger.error('Error loading from storage', e);
+    }
+  }
+
+  Future<void> _saveUserToStorage(User user) async {
+    try {
+      await _storage.write(key: 'user_id', value: user.id);
+      await _storage.write(key: 'user_email', value: user.email);
+      await _storage.write(key: 'user_name', value: user.name);
+      await _storage.write(key: 'user_phone', value: user.phone ?? '');
+      await _storage.write(key: 'user_role', value: user.role);
+      await _storage.write(key: 'user_is_active', value: user.isActive.toString());
+      await _storage.write(key: 'user_tenant_id', value: user.tenantId ?? '');
+      await _storage.write(key: 'user_created_at', value: user.createdAt);
+      AppLogger.debug('User data saved to storage');
+    } catch (e) {
+      AppLogger.error('Error saving user to storage', e);
+    }
+  }
+
+  Future<void> _clearUserFromStorage() async {
+    try {
+      await _storage.delete(key: 'user_id');
+      await _storage.delete(key: 'user_email');
+      await _storage.delete(key: 'user_name');
+      await _storage.delete(key: 'user_phone');
+      await _storage.delete(key: 'user_role');
+      await _storage.delete(key: 'user_is_active');
+      await _storage.delete(key: 'user_tenant_id');
+      await _storage.delete(key: 'user_created_at');
+      AppLogger.debug('User data cleared from storage');
+    } catch (e) {
+      AppLogger.error('Error clearing user from storage', e);
+    }
   }
 
   Future<void> login(String email, String password) async {
@@ -70,6 +134,8 @@ class AuthProvider extends ChangeNotifier {
       if (res['user'] != null) {
         _user = User.fromJson(res['user']);
         AppLogger.debug('User data parsed: ${_user?.email}');
+        // Save user data to secure storage
+        await _saveUserToStorage(_user!);
       }
       
       await _storage.write(key: 'token', value: _token!);
@@ -114,6 +180,8 @@ class AuthProvider extends ChangeNotifier {
         _token = response.token;
         if (response.user != null) {
           _user = User.fromJson(response.user!);
+          // Save user data to secure storage
+          await _saveUserToStorage(_user!);
         }
         await _storage.write(key: 'token', value: _token ?? '');
         notifyListeners();
@@ -181,10 +249,41 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Fetch current user profile from API
+  Future<void> fetchUserProfile() async {
+    if (_token == null) {
+      AppLogger.warning('Cannot fetch user profile: No token available');
+      return;
+    }
+
+    try {
+      final response = await api.getUserProfile(_token!);
+      
+      if (response['user'] != null) {
+        _user = User.fromJson(response['user']);
+        await _saveUserToStorage(_user!);
+        AppLogger.info('User profile updated: ${_user?.email}');
+        notifyListeners();
+      } else if (response['id'] != null) {
+        // If the response is the user object itself
+        _user = User.fromJson(response);
+        await _saveUserToStorage(_user!);
+        AppLogger.info('User profile updated: ${_user?.email}');
+        notifyListeners();
+      }
+    } catch (e) {
+      AppLogger.error('Failed to fetch user profile', e);
+      // Don't throw, just log - this is a non-critical operation
+    }
+  }
+
   Future<void> logout() async {
     _token = null;
     _user = null;
     await _storage.delete(key: 'token');
+    await _clearUserFromStorage();
+    AppLogger.info('User logged out successfully');
     notifyListeners();
   }
 }
+

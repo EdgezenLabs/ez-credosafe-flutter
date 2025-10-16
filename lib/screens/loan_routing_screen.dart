@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/constants.dart';
+import '../config/constants.dart'; // This now exports all design system files
+import '../widgets/common/gradient_button.dart';
 import '../providers/loan_status_provider.dart';
 import '../providers/auth_provider.dart';
 import 'loan_dashboard_screen.dart';
@@ -40,22 +41,22 @@ class _LoanRoutingScreenState extends State<LoanRoutingScreen> {
         if (!authProvider.hasLoanAccess) {
           return Scaffold(
             body: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: AppConstants.goldenGradient,
               ),
-              child: const Center(
+              child: Center(
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.lock_outline,
                         size: 64,
                         color: Colors.white,
                       ),
-                      SizedBox(height: 16),
-                      Text(
+                      const SizedBox(height: 16),
+                      const Text(
                         'Access Denied',
                         style: TextStyle(
                           color: Colors.white,
@@ -64,8 +65,8 @@ class _LoanRoutingScreenState extends State<LoanRoutingScreen> {
                           fontFamily: 'Poppins',
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(
+                      const SizedBox(height: 8),
+                      const Text(
                         'You do not have permission to access loan features.',
                         style: TextStyle(
                           color: Colors.white,
@@ -73,6 +74,37 @@ class _LoanRoutingScreenState extends State<LoanRoutingScreen> {
                           fontFamily: 'Poppins',
                         ),
                         textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Logged in as: ${authProvider.user?.email ?? "Unknown"}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 14,
+                          fontFamily: 'Poppins',
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        'Role: ${authProvider.user?.role ?? "Unknown"}',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 14,
+                          fontFamily: 'Poppins',
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      GradientButton(
+                        onPressed: () async {
+                          // Logout and redirect to login
+                          await authProvider.logout();
+                          if (context.mounted) {
+                            Navigator.pushReplacementNamed(context, '/login');
+                          }
+                        },
+                        text: 'Logout',
+                        icon: Icons.logout,
                       ),
                     ],
                   ),
@@ -84,7 +116,7 @@ class _LoanRoutingScreenState extends State<LoanRoutingScreen> {
         if (loanProvider.isLoading) {
           return Scaffold(
             body: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: AppConstants.goldenGradient,
               ),
               child: const Center(
@@ -113,7 +145,7 @@ class _LoanRoutingScreenState extends State<LoanRoutingScreen> {
         if (loanProvider.error != null) {
           return Scaffold(
             body: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: AppConstants.goldenGradient,
               ),
               child: Center(
@@ -125,10 +157,10 @@ class _LoanRoutingScreenState extends State<LoanRoutingScreen> {
                       Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         'Unable to load loan information',
                         style: TextStyle(
                           color: Colors.white,
@@ -142,36 +174,19 @@ class _LoanRoutingScreenState extends State<LoanRoutingScreen> {
                       Text(
                         loanProvider.error!,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 14,
                           fontFamily: 'Poppins',
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton(
+                      GradientButton(
                         onPressed: () {
                           loanProvider.refreshLoanStatus(authProvider);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppConstants.primaryText,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Try Again',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
+                        text: 'Try Again',
+                        icon: Icons.refresh,
                       ),
                     ],
                   ),

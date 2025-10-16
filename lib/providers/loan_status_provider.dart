@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import '../config/constants.dart';
 import '../models/loan_status.dart';
 import '../services/api_service.dart';
+import '../utils/logger.dart';
+import 'dart:typed_data';
 import 'auth_provider.dart';
 
 class LoanStatusProvider extends ChangeNotifier {
@@ -25,7 +27,6 @@ class LoanStatusProvider extends ChangeNotifier {
   Future<void> fetchLoanStatus(AuthProvider authProvider, {bool forceRefresh = false}) async {
     // Prevent multiple API calls unless forced refresh
     if (_hasDataLoaded && !forceRefresh) {
-      print('Loan status already loaded, skipping API call');
       return;
     }
 
@@ -46,7 +47,6 @@ class LoanStatusProvider extends ChangeNotifier {
         return;
       }
 
-      print('Making loan status API call to: ${AppConstants.baseUrl}/user/loan-status');
       final response = await http.get(
         Uri.parse('${AppConstants.baseUrl}/user/loan-status'),
         headers: {
@@ -55,8 +55,8 @@ class LoanStatusProvider extends ChangeNotifier {
         },
       );
 
-      print('Loan status API response: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      AppLogger.debug('Loan status API response: ${response.statusCode}');
+      AppLogger.debug('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -73,26 +73,26 @@ class LoanStatusProvider extends ChangeNotifier {
           _loanStatus = LoanStatus.fromJson(data);
           _hasDataLoaded = true;
           _isAuthenticationError = false;
-          print('Loan status loaded successfully: ${_loanStatus?.userStatus}');
+          AppLogger.info('Loan status loaded successfully: ${_loanStatus?.userStatus}');
         } else {
           _error = 'Invalid response format';
-          print('Invalid response format: $jsonData');
+          AppLogger.error('Invalid response format: $jsonData');
         }
       } else if (response.statusCode == 401) {
         // Authentication failed - token is invalid or expired
         _isAuthenticationError = true;
         _error = 'Authentication failed. Please login again.';
-        print('Authentication error: ${response.body}');
+        AppLogger.error('Authentication error: ${response.body}');
         
         // Logout the user
         await authProvider.logout();
       } else {
         _error = 'Failed to fetch loan status: ${response.statusCode}';
-        print('Error response: ${response.body}');
+        AppLogger.error('Error response: ${response.body}');
       }
     } catch (e) {
       _error = 'Network error: $e';
-      print('Exception in fetchLoanStatus: $e');
+      AppLogger.error('Exception in fetchLoanStatus: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -108,7 +108,7 @@ class LoanStatusProvider extends ChangeNotifier {
     try {
       final token = authProvider.token;
       if (token == null || token.isEmpty) {
-        print('No authentication token for loan application');
+        AppLogger.warning('No authentication token for loan application');
         return null;
       }
 
@@ -132,12 +132,12 @@ class LoanStatusProvider extends ChangeNotifier {
         await authProvider.logout();
         return null;
       } else {
-        print('Error applying for loan: ${response.statusCode}');
-        print('Response: ${response.body}');
+        AppLogger.error('Error applying for loan: ${response.statusCode}');
+        AppLogger.debug('Response: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Exception in applyForLoan: $e');
+      AppLogger.error('Exception in applyForLoan: $e');
       return null;
     }
   }
@@ -149,11 +149,11 @@ class LoanStatusProvider extends ChangeNotifier {
     required PlatformFile file,
   }) async {
     try {
-      print('LoanStatusProvider.uploadDocument called');
-      print('Application ID: $applicationId');
-      print('Document Type: $documentType');
-      print('File name: ${file.name}');
-      print('File size: ${file.size}');
+      AppLogger.debug('LoanStatusProvider.uploadDocument called');
+      AppLogger.debug('Application ID: $applicationId');
+      AppLogger.debug('Document Type: $documentType');
+      AppLogger.debug('File name: ${file.name}');
+      AppLogger.debug('File size: ${file.size}');
       
       final response = await apiService.uploadApplicationDocument(
         token: token,
@@ -162,56 +162,52 @@ class LoanStatusProvider extends ChangeNotifier {
         platformFile: file,
       );
       
-      print('Upload successful, response: $response');
+      AppLogger.info('Upload successful, response: $response');
       return response;
     } catch (e) {
-      print('Exception in LoanStatusProvider.uploadDocument: $e');
+      AppLogger.error('Exception in LoanStatusProvider.uploadDocument: $e');
       _error = e.toString();
       notifyListeners();
       return null;
     }
   }
 
-  Future<String?> viewDocument({
+  Future<Uint8List?> viewDocument({
     required String token,
     required String documentId,
   }) async {
     try {
-      print('LoanStatusProvider.viewDocument called');
-      print('Document ID: $documentId');
-      
-      final url = await apiService.viewDocument(
+      AppLogger.debug('LoanStatusProvider.viewDocument called');
+      AppLogger.debug('Document ID: $documentId');
+      final data = await apiService.viewDocument(
         token: token,
         documentId: documentId,
       );
-      
-      print('View document successful, URL: $url');
-      return url;
+      AppLogger.info('View document successful, bytes: \\${data?.length}');
+      return data;
     } catch (e) {
-      print('Exception in LoanStatusProvider.viewDocument: $e');
+      AppLogger.error('Exception in LoanStatusProvider.viewDocument: $e');
       _error = e.toString();
       notifyListeners();
       return null;
     }
   }
 
-  Future<String?> downloadDocument({
+  Future<Uint8List?> downloadDocument({
     required String token,
     required String documentId,
   }) async {
     try {
-      print('LoanStatusProvider.downloadDocument called');
-      print('Document ID: $documentId');
-      
-      final url = await apiService.downloadDocument(
+      AppLogger.debug('LoanStatusProvider.downloadDocument called');
+      AppLogger.debug('Document ID: $documentId');
+      final data = await apiService.downloadDocument(
         token: token,
         documentId: documentId,
       );
-      
-      print('Download document successful, URL: $url');
-      return url;
+      AppLogger.info('Download document successful, bytes: \\${data?.length}');
+      return data;
     } catch (e) {
-      print('Exception in LoanStatusProvider.downloadDocument: $e');
+      AppLogger.error('Exception in LoanStatusProvider.downloadDocument: $e');
       _error = e.toString();
       notifyListeners();
       return null;
@@ -232,12 +228,12 @@ class LoanStatusProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print('Error fetching application details: ${response.statusCode}');
-        print('Response: ${response.body}');
+        AppLogger.error('Error fetching application details: ${response.statusCode}');
+        AppLogger.debug('Response: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Exception in getApplicationDetails: $e');
+      AppLogger.error('Exception in getApplicationDetails: $e');
       return null;
     }
   }
@@ -256,12 +252,12 @@ class LoanStatusProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print('Error fetching loan details: ${response.statusCode}');
-        print('Response: ${response.body}');
+        AppLogger.error('Error fetching loan details: ${response.statusCode}');
+        AppLogger.debug('Response: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Exception in getLoanDetails: $e');
+      AppLogger.error('Exception in getLoanDetails: $e');
       return null;
     }
   }
@@ -275,7 +271,7 @@ class LoanStatusProvider extends ChangeNotifier {
     try {
       final token = authProvider.token;
       if (token == null || token.isEmpty) {
-        print('No authentication token for payment');
+        AppLogger.warning('No authentication token for payment');
         return null;
       }
 
@@ -299,12 +295,12 @@ class LoanStatusProvider extends ChangeNotifier {
         await authProvider.logout();
         return null;
       } else {
-        print('Error making payment: ${response.statusCode}');
-        print('Response: ${response.body}');
+        AppLogger.error('Error making payment: ${response.statusCode}');
+        AppLogger.debug('Response: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Exception in makePayment: $e');
+      AppLogger.error('Exception in makePayment: $e');
       return null;
     }
   }
@@ -424,7 +420,7 @@ class LoanStatusProvider extends ChangeNotifier {
   // Cancel loan application
   Future<void> cancelLoanApplication(String token, String applicationId, AuthProvider authProvider) async {
     try {
-      print('Cancelling loan application: $applicationId');
+      AppLogger.info('Cancelling loan application: $applicationId');
       final response = await http.put(
         Uri.parse('${AppConstants.baseUrl}/loan/application/$applicationId/cancel'),
         headers: {
@@ -433,12 +429,12 @@ class LoanStatusProvider extends ChangeNotifier {
         },
       );
 
-      print('Cancel response status: ${response.statusCode}');
-      print('Cancel response body: ${response.body}');
+      AppLogger.debug('Cancel response status: ${response.statusCode}');
+      AppLogger.debug('Cancel response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('Loan application cancelled successfully: ${data['message']}');
+        AppLogger.info('Loan application cancelled successfully: ${data['message']}');
         
         // Force refresh loan status from API to get updated list
         await fetchLoanStatus(authProvider, forceRefresh: true);
@@ -449,7 +445,7 @@ class LoanStatusProvider extends ChangeNotifier {
         throw Exception(_error);
       }
     } catch (e) {
-      print('Error cancelling loan application: $e');
+      AppLogger.error('Error cancelling loan application: $e');
       _error = e.toString();
       notifyListeners();
       rethrow;

@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../config/constants.dart';
 import '../models/otp.dart';
+import '../utils/logger.dart';
 
 class ApiService {
   final Dio _dio;
@@ -127,6 +129,21 @@ class ApiService {
     }
   }
 
+  // Get current user profile
+  Future<Map<String, dynamic>> getUserProfile(String token) async {
+    try {
+      final resp = await _dio.get(
+        '/user/profile',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
+      );
+      return resp.data;
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
   // Apply for Loan - New API integration
   Future<Map<String, dynamic>> applyForLoan({
     required String token,
@@ -166,16 +183,16 @@ class ApiService {
     required PlatformFile platformFile,
   }) async {
     try {
-      print('ApiService.uploadApplicationDocument called');
-      print('Application ID: $applicationId');
-      print('Document Type: $documentType');
-      print('Platform: ${kIsWeb ? "Web" : "Mobile/Desktop"}');
+      AppLogger.debug('ApiService.uploadApplicationDocument called');
+      AppLogger.debug('Application ID: $applicationId');
+      AppLogger.debug('Document Type: $documentType');
+      AppLogger.debug('Platform: ${kIsWeb ? "Web" : "Mobile/Desktop"}');
       
       MultipartFile multipartFile;
       
       if (kIsWeb) {
         // Web: use bytes (path is not available on web)
-        print('Using bytes for web platform');
+        AppLogger.debug('Using bytes for web platform');
         if (platformFile.bytes == null) {
           throw Exception('File bytes are null on web platform');
         }
@@ -183,10 +200,10 @@ class ApiService {
           platformFile.bytes!,
           filename: platformFile.name,
         );
-        print('Multipart file created from bytes: ${platformFile.name}');
+        AppLogger.debug('Multipart file created from bytes: ${platformFile.name}');
       } else {
         // Mobile/Desktop: use file path
-        print('Using file path for mobile/desktop platform');
+        AppLogger.debug('Using file path for mobile/desktop platform');
         if (platformFile.path == null) {
           throw Exception('File path is null on mobile platform');
         }
@@ -194,7 +211,7 @@ class ApiService {
           platformFile.path!,
           filename: platformFile.name,
         );
-        print('Multipart file created from path: ${platformFile.path}');
+        AppLogger.debug('Multipart file created from path: ${platformFile.path}');
       }
 
       final formData = FormData.fromMap({
@@ -202,7 +219,7 @@ class ApiService {
         'file': multipartFile,
       });
 
-      print('Making POST request to: /loan/application/$applicationId/documents');
+      AppLogger.debug('Making POST request to: /loan/application/$applicationId/documents');
       final resp = await _dio.post(
         '/loan/application/$applicationId/documents',
         data: formData,
@@ -214,78 +231,76 @@ class ApiService {
         ),
       );
       
-      print('Upload API response status: ${resp.statusCode}');
-      print('Upload API response data: ${resp.data}');
+      AppLogger.debug('Upload API response status: ${resp.statusCode}');
+      AppLogger.debug('Upload API response data: ${resp.data}');
       return resp.data;
     } on DioException catch (e) {
-      print('DioException in uploadApplicationDocument: ${e.message}');
-      print('DioException response: ${e.response?.data}');
-      print('DioException status code: ${e.response?.statusCode}');
+      AppLogger.debug('DioException in uploadApplicationDocument: ${e.message}');
+      AppLogger.debug('DioException response: ${e.response?.data}');
+      AppLogger.debug('DioException status code: ${e.response?.statusCode}');
       throw _handleDioException(e);
     } catch (e) {
-      print('Generic exception in uploadApplicationDocument: $e');
+      AppLogger.debug('Generic exception in uploadApplicationDocument: $e');
       rethrow;
     }
   }
 
   // View Document
-  Future<String> viewDocument({
+  Future<Uint8List?> viewDocument({
     required String token,
     required String documentId,
   }) async {
     try {
-      print('ApiService.viewDocument called');
-      print('Document ID: $documentId');
-      
+      AppLogger.debug('ApiService.viewDocument called');
+      AppLogger.debug('Document ID: $documentId');
       final resp = await _dio.get(
         '/loan/document/$documentId/view',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
+          responseType: ResponseType.bytes,
         ),
       );
-      
-      print('View document API response status: ${resp.statusCode}');
-      print('View document API response data: ${resp.data}');
-      return resp.data as String; // Returns the document URL or base64 string
+      AppLogger.debug('View document API response status: ${resp.statusCode}');
+      AppLogger.debug('View document API response data: ${resp.data.runtimeType}');
+      return resp.data as Uint8List;
     } on DioException catch (e) {
-      print('DioException in viewDocument: ${e.message}');
-      print('DioException response: ${e.response?.data}');
+      AppLogger.debug('DioException in viewDocument: ${e.message}');
+      AppLogger.debug('DioException response: ${e.response?.data}');
       throw _handleDioException(e);
     } catch (e) {
-      print('Generic exception in viewDocument: $e');
+      AppLogger.debug('Generic exception in viewDocument: $e');
       rethrow;
     }
   }
 
   // Download Document
-  Future<String> downloadDocument({
+  Future<Uint8List?> downloadDocument({
     required String token,
     required String documentId,
   }) async {
     try {
-      print('ApiService.downloadDocument called');
-      print('Document ID: $documentId');
-      
+      AppLogger.debug('ApiService.downloadDocument called');
+      AppLogger.debug('Document ID: $documentId');
       final resp = await _dio.get(
         '/loan/document/$documentId/download',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
           },
+          responseType: ResponseType.bytes,
         ),
       );
-      
-      print('Download document API response status: ${resp.statusCode}');
-      print('Download document API response data: ${resp.data}');
-      return resp.data as String; // Returns the download URL or file content
+      AppLogger.debug('Download document API response status: ${resp.statusCode}');
+      AppLogger.debug('Download document API response data: ${resp.data.runtimeType}');
+      return resp.data as Uint8List;
     } on DioException catch (e) {
-      print('DioException in downloadDocument: ${e.message}');
-      print('DioException response: ${e.response?.data}');
+      AppLogger.debug('DioException in downloadDocument: ${e.message}');
+      AppLogger.debug('DioException response: ${e.response?.data}');
       throw _handleDioException(e);
     } catch (e) {
-      print('Generic exception in downloadDocument: $e');
+      AppLogger.debug('Generic exception in downloadDocument: $e');
       rethrow;
     }
   }
