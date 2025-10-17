@@ -5,9 +5,27 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../config/constants.dart';
 import '../models/otp.dart';
+import '../models/admin_loan_application.dart';
 import '../utils/logger.dart';
 
 class ApiService {
+  // Get all loan applications for admin
+  static Future<List<AdminLoanApplication>> getAdminLoanApplications(String token) async {
+    final dio = Dio(BaseOptions(baseUrl: Constants.apiBaseUrl));
+    final resp = await dio.get(
+      '/admin/loan-applications',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    final items = resp.data['items'] as List<dynamic>? ?? [];
+    return items.map((e) => AdminLoanApplication.fromJson(e)).toList();
+  }
+
+  // Approve a loan application (admin)
+  static Future<void> approveLoanApplication(String applicationId, {String? token}) async {
+    final dio = Dio(BaseOptions(baseUrl: Constants.apiBaseUrl));
+    final headers = token != null ? {'Authorization': 'Bearer $token'} : null;
+    await dio.put('/admin/loan-application/$applicationId/approve', options: Options(headers: headers));
+  }
   final Dio _dio;
 
   ApiService()
