@@ -6,15 +6,16 @@ import 'providers/auth_provider.dart';
 import 'providers/loans_provider.dart';
 import 'providers/loan_status_provider.dart';
 import 'providers/loan_application_provider.dart';
-import 'screens/splash_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/otp_verification_screen.dart';
-import 'screens/success_screen.dart';
-import 'screens/password_setup_screen.dart';
-import 'screens/loan_list_screen.dart';
-import 'screens/forgot_password_screen.dart';
-import 'screens/reset_password_screen.dart';
-import 'screens/loan_routing_screen.dart';
+import 'screens/common/splash_screen.dart';
+import 'screens/common/login_screen.dart';
+import 'screens/common/otp_verification_screen.dart';
+import 'screens/common/success_screen.dart';
+import 'screens/common/password_setup_screen.dart';
+import 'screens/customer/loan_list_screen.dart';
+import 'screens/common/forgot_password_screen.dart';
+import 'screens/common/reset_password_screen.dart';
+import 'screens/customer/loan_routing_screen.dart';
+import 'screens/admin/admin_loan_applications_screen.dart';
 import 'utils/logger.dart';
 
 // Conditional import for web
@@ -105,32 +106,17 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<LoanApplicationProvider>(create: (_) => LoanApplicationProvider()),
       ],
       child: Consumer<AuthProvider>(builder: (context, authProv, _) {
-        // Determine initial widget based on URL for web
+        // Navigation after login based on role
         Widget initialWidget = const SplashScreen();
-        
-        if (kIsWeb) {
-          try {
-            final currentUrl = kIsWeb ? web.window.location.href : '';
-            
-            // Simple check if URL contains reset-password and token
-            if (currentUrl.contains('/reset-password') && currentUrl.contains('token=')) {
-              // Extract token using simple string parsing
-              final uri = Uri.parse(currentUrl);
-              final token = uri.queryParameters['token'] ?? '';
-              final email = uri.queryParameters['email'] ?? '';
-              
-             
-              
-              if (token.isNotEmpty) {
-                initialWidget = ResetPasswordScreen(token: token, email: email);
-              }
-            }
-          } catch (e) {
-            AppLogger.error('Error parsing URL', e);
-            // If there's an error, default to splash screen
+        final isLoggedIn = authProv.isLoggedIn;
+        final userRole = authProv.user?.role ?? '';
+        if (isLoggedIn) {
+          if (userRole == 'admin') {
+            initialWidget = const AdminLoanApplicationsScreen();
+          } else {
+            initialWidget = const LoanRoutingScreen();
           }
         }
-        
         return MaterialApp(
           title: 'Credosafe',
           theme: ThemeData(

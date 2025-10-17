@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/app_text_styles.dart';
-import '../config/constants.dart';
-import '../providers/auth_provider.dart';
-import '../utils/validation_utils.dart';
-import '../widgets/index.dart';
+import '../../config/app_text_styles.dart';
+import '../../config/constants.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/validation_utils.dart';
+import '../../widgets/index.dart';
 import 'otp_verification_screen.dart';
 import 'forgot_password_screen.dart';
 
@@ -446,8 +446,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
           _emailError = null;
           _passwordError = null;
         });
-        
-        Navigator.pushReplacementNamed(context, '/loan-dashboard');
+        // No navigation here; let main.dart handle role-based routing
       }
     } catch (e) {
       // Show specific error message for login failure

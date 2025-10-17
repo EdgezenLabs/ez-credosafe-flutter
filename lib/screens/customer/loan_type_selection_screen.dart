@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/loan_status.dart';
-import '../providers/loan_status_provider.dart';
-import '../providers/auth_provider.dart';
+import '../../models/loan_status.dart';
+import '../../providers/loan_status_provider.dart';
+import '../../providers/auth_provider.dart';
 import 'personal_loan_application_screen.dart';
-import '../widgets/common/gradient_button.dart';
+import '../../widgets/common/gradient_button.dart';
 
 class LoanTypeSelectionScreen extends StatefulWidget {
   const LoanTypeSelectionScreen({Key? key}) : super(key: key);

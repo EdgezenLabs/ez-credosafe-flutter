@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:ez_credosafe_flutter/screens/password_setup_screen.dart';
+import 'package:ez_credosafe_flutter/screens/common/password_setup_screen.dart';
 import '../helpers/test_helper.dart';
 import '../mocks/mock_classes.dart';
 

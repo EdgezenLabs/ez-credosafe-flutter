@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/loans_provider.dart';
-import '../models/application.dart';
+import '../../providers/loans_provider.dart';
+import '../../models/application.dart';
 
 class MyApplicationsScreen extends StatefulWidget {
   const MyApplicationsScreen({super.key});

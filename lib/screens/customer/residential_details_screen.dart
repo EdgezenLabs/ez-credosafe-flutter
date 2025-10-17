@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import '../utils/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import '../providers/auth_provider.dart';
-import '../providers/loan_application_provider.dart';
-import '../providers/loan_status_provider.dart';
-import 'application_success_screen.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/loan_status_provider.dart';
+import 'employment_details_screen.dart';
 
-class EmploymentDetailsScreen extends StatefulWidget {
+class ResidentialDetailsScreen extends StatefulWidget {
   final String loanType;
   final String purpose;
   final String applicants;
@@ -17,9 +15,8 @@ class EmploymentDetailsScreen extends StatefulWidget {
   final PlatformFile? panFile;
   final double amount;
   final String tenure;
-  final String residentialStatus;
-
-  const EmploymentDetailsScreen({
+  
+  const ResidentialDetailsScreen({
     Key? key,
     required this.loanType,
     required this.purpose,
@@ -30,44 +27,20 @@ class EmploymentDetailsScreen extends StatefulWidget {
     this.panFile,
     required this.amount,
     required this.tenure,
-    required this.residentialStatus,
   }) : super(key: key);
 
   @override
-  State<EmploymentDetailsScreen> createState() => _EmploymentDetailsScreenState();
+  State<ResidentialDetailsScreen> createState() => _ResidentialDetailsScreenState();
 }
 
-class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
+class _ResidentialDetailsScreenState extends State<ResidentialDetailsScreen> {
   String? selectedStatus;
-  bool isSubmitting = false;
 
   final List<String> statusOptions = [
-    'Full-time employed',
-    'Part-time employed',
-    'Work at home',
-    'Self employed',
-    'Unemployed',
-    'Retired',
-    'Student',
+    'House Owner',
+    'Private Tenant',
+    'With Parents',
   ];
-
-  // Map display values to API values
-  String _mapEmploymentTypeToApi(String displayValue) {
-    switch (displayValue) {
-      case 'Full-time employed':
-      case 'Part-time employed':
-        return 'salaried';
-      case 'Self employed':
-      case 'Work at home':
-        return 'self_employed';
-      case 'Unemployed':
-      case 'Retired':
-      case 'Student':
-        return 'self_employed'; // Map to self_employed as fallback
-      default:
-        return 'salaried';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +99,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
                               color: Color(0xFF300700),
                             ),
                             children: [
-                              TextSpan(text: 'Employment '),
+                              TextSpan(text: 'Residential '),
                               TextSpan(
                                 text: 'Details',
                                 style: TextStyle(
@@ -140,7 +113,7 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
                       const SizedBox(height: 8),
                       const Center(
                         child: Text(
-                          "Please fill your employment details\nbelow",
+                          "Please fill your residential details\nbelow",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
@@ -164,31 +137,23 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
                       const SizedBox(height: 12),
 
                       // Status Options
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              ...statusOptions.map((status) => _buildOptionButton(
-                                status,
-                                selectedStatus == status,
-                                () {
-                                  setState(() {
-                                    selectedStatus = status;
-                                  });
-                                },
-                              )),
-                            ],
-                          ),
-                        ),
-                      ),
+                      ...statusOptions.map((status) => _buildOptionButton(
+                        status,
+                        selectedStatus == status,
+                        () {
+                          setState(() {
+                            selectedStatus = status;
+                          });
+                        },
+                      )),
 
-                      const SizedBox(height: 20),
+                      const Spacer(),
 
-                      // Proceed Button
+                      // Continue Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: isSubmitting ? null : _handleProceed,
+                          onPressed: _handleContinue,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFB8935E),
                             foregroundColor: Colors.white,
@@ -197,25 +162,15 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             elevation: 0,
-                            disabledBackgroundColor: const Color(0xFFB8935E).withValues(alpha: 0.5),
                           ),
-                          child: isSubmitting
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Proceed',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Poppins',
-                                  ),
-                                ),
+                          child: const Text(
+                            'Continue',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -339,166 +294,32 @@ class _EmploymentDetailsScreenState extends State<EmploymentDetailsScreen> {
     );
   }
 
-  void _handleProceed() async {
-    AppLogger.debug('_handleProceed called'); // Debug
+  void _handleContinue() {
     if (selectedStatus == null) {
-      AppLogger.debug('No employment status selected'); // Debug
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your employment status')),
+        const SnackBar(content: Text('Please select your residential status')),
       );
       return;
     }
 
-    AppLogger.debug('Employment status selected: $selectedStatus'); // Debug
-    setState(() {
-      isSubmitting = true;
-    });
-
-    try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final loanProvider = Provider.of<LoanApplicationProvider>(context, listen: false);
-
-      // Get token from auth provider
-      final token = authProvider.token;
-      AppLogger.debug('Token: ${token != null ? "Available" : "Null"}'); // Debug
-      if (token == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please login first')),
-          );
-        }
-        setState(() {
-          isSubmitting = false;
-        });
-        return;
-      }
-
-      AppLogger.debug('Calling applyForLoan API...'); // Debug
-      AppLogger.debug('Selected status: $selectedStatus'); // Debug
-      
-      // Map employment type to API value
-      final apiEmploymentType = _mapEmploymentTypeToApi(selectedStatus!);
-      AppLogger.debug('Mapped employment type: $apiEmploymentType'); // Debug
-      
-      // Apply for loan
-      final success = await loanProvider.applyForLoan(
-        token: token,
-        loanType: widget.loanType,
-        requestedAmount: widget.amount,
-        purpose: widget.purpose,
-        employmentType: apiEmploymentType,
-        monthlyIncome: 50000, // Default value, should be collected in a previous screen
-        existingEmis: 0,
-      );
-
-      AppLogger.debug('applyForLoan result: $success'); // Debug
-      if (!success || loanProvider.error != null) {
-        AppLogger.debug('applyForLoan error: ${loanProvider.error}'); // Debug
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${loanProvider.error}')),
-          );
-        }
-        setState(() {
-          isSubmitting = false;
-        });
-        return;
-      }
-
-      // Get application ID from the response
-      final applicationId = loanProvider.currentApplicationId;
-      AppLogger.debug('Application ID: $applicationId'); // Debug
-      if (applicationId == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: No application ID received')),
-          );
-        }
-        setState(() {
-          isSubmitting = false;
-        });
-        return;
-      }
-
-      // Upload Aadhaar document if provided
-      if (widget.aadhaarFile != null) {
-        AppLogger.debug('Uploading Aadhaar document...'); // Debug
-        final aadhaarSuccess = await loanProvider.uploadDocument(
-          token: token,
-          applicationId: applicationId,
-          documentType: 'aadhaar',
-          file: widget.aadhaarFile!,
-        );
-
-        AppLogger.debug('Aadhaar upload result: $aadhaarSuccess'); // Debug
-        if (!aadhaarSuccess || loanProvider.error != null) {
-          AppLogger.debug('Aadhaar upload error: ${loanProvider.error}'); // Debug
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error uploading Aadhaar: ${loanProvider.error}')),
-            );
-          }
-          setState(() {
-            isSubmitting = false;
-          });
-          return;
-        }
-      } else {
-        AppLogger.debug('No Aadhaar file to upload, skipping...'); // Debug
-      }
-
-      // Upload PAN document if provided
-      if (widget.panFile != null) {
-        AppLogger.debug('Uploading PAN document...'); // Debug
-        final panSuccess = await loanProvider.uploadDocument(
-          token: token,
-          applicationId: applicationId,
-          documentType: 'pan',
-          file: widget.panFile!,
-        );
-
-        AppLogger.debug('PAN upload result: $panSuccess'); // Debug
-        if (!panSuccess || loanProvider.error != null) {
-          AppLogger.debug('PAN upload error: ${loanProvider.error}'); // Debug
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error uploading PAN: ${loanProvider.error}')),
-            );
-          }
-          setState(() {
-            isSubmitting = false;
-          });
-          return;
-        }
-      } else {
-        AppLogger.debug('No PAN file to upload, skipping...'); // Debug
-      }
-
-      setState(() {
-        isSubmitting = false;
-      });
-
-      AppLogger.debug('All operations successful, navigating to success screen'); // Debug
-      // Navigate to Success Screen only if everything succeeded
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ApplicationSuccessScreen(),
-          ),
-        );
-      }
-    } catch (e) {
-      AppLogger.debug('Exception in _handleProceed: $e'); // Debug
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-      setState(() {
-        isSubmitting = false;
-      });
-    }
+    // Navigate to Employment Details Screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EmploymentDetailsScreen(
+          loanType: widget.loanType,
+          purpose: widget.purpose,
+          applicants: widget.applicants,
+          firstName: widget.firstName,
+          email: widget.email,
+          aadhaarFile: widget.aadhaarFile,
+          panFile: widget.panFile,
+          amount: widget.amount,
+          tenure: widget.tenure,
+          residentialStatus: selectedStatus!,
+        ),
+      ),
+    );
   }
 
   void _showSignOutDialog(BuildContext context) {

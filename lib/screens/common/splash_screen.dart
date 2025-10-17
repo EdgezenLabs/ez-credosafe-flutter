@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import '../providers/auth_provider.dart';
-import '../screens/reset_password_screen.dart';
-import '../utils/url_helper.dart';
-import '../utils/logger.dart';
+import '../../providers/auth_provider.dart';
+import 'reset_password_screen.dart';
+import '../../utils/url_helper.dart';
+import '../../utils/logger.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {

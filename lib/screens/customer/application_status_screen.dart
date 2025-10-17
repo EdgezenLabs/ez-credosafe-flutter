@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/constants.dart';
-import '../models/loan_status.dart';
-import '../providers/loan_status_provider.dart';
-import '../providers/auth_provider.dart';
+import '../../config/constants.dart';
+import '../../models/loan_status.dart';
+import '../../providers/loan_status_provider.dart';
+import '../../providers/auth_provider.dart';
 import 'loan_type_selection_screen.dart';
 
 class ApplicationStatusScreen extends StatefulWidget {
