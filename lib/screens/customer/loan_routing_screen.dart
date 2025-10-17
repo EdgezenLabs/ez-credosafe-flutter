@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/constants.dart'; // This now exports all design system files
-import '../widgets/common/gradient_button.dart';
-import '../providers/loan_status_provider.dart';
-import '../providers/auth_provider.dart';
+import '../../config/constants.dart'; // This now exports all design system files
+import '../../widgets/common/gradient_button.dart';
+import '../../providers/loan_status_provider.dart';
+import '../../providers/auth_provider.dart';
 import 'loan_dashboard_screen.dart';
 import 'loan_status_screen.dart';
 import 'loan_type_selection_screen.dart';

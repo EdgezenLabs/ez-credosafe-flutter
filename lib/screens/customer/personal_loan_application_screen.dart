@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../utils/logger.dart';
+import '../../utils/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import '../providers/auth_provider.dart';
-import '../providers/loan_status_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/loan_status_provider.dart';
 import 'residential_details_screen.dart';
 
 class PersonalLoanApplicationScreen extends StatefulWidget {

@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/loan_product.dart';
-import '../providers/loans_provider.dart';
-import '../widgets/index.dart';
+import '../../models/loan_product.dart';
+import '../../providers/loans_provider.dart';
+import '../../widgets/index.dart';
 
 class LoanApplyScreen extends StatefulWidget {
   final LoanProduct product;

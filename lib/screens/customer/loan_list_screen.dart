@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/loans_provider.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/loan_card.dart';
+import '../../providers/loans_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/loan_card.dart';
 import 'loan_apply_screen.dart';
-import 'my_applications_screen.dart';
+import '../common/my_applications_screen.dart';
 
 class LoanListScreen extends StatefulWidget {
   const LoanListScreen({super.key});
